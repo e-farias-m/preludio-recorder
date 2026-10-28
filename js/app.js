@@ -174,11 +174,12 @@ function showNamePrompt() {
   overlay.className = 'name-overlay';
   overlay.innerHTML = `
     <div class="name-modal">
+      <div style="display:flex;justify-content:flex-end;width:100%"><button class="theme-toggle" data-action="name-toggle-language" title="Language">${getLang() === 'pt' ? 'PT' : 'EN'}</button></div>
       <div class="name-modal-icon">🎵</div>
-      <div class="name-modal-title">Welcome to Preludio Recorder!</div>
-      <div class="name-modal-sub">What's your name?</div>
-      <input type="text" class="name-input" placeholder="Your name..." maxlength="50" autocomplete="off" />
-      <button class="btn btn-primary btn-wide name-submit">Start practicing</button>
+      <div class="name-modal-title">${t('Welcome to Preludio Recorder!')}</div>
+      <div class="name-modal-sub">${t("What's your name?")}</div>
+      <input type="text" class="name-input" placeholder="${t('Your name...')}" maxlength="50" autocomplete="off" />
+      <button class="btn btn-primary btn-wide name-submit">${t('Start practicing')}</button>
     </div>`;
   document.body.appendChild(overlay);
 
@@ -196,6 +197,11 @@ function showNamePrompt() {
 
   submit.addEventListener('click', submitName);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') submitName(); });
+  overlay.querySelector('[data-action="name-toggle-language"]').addEventListener('click', () => {
+    setLang(getLang() === 'pt' ? 'en' : 'pt');
+    document.body.querySelector('.name-overlay')?.remove();
+    showNamePrompt();
+  });
 }
 
 // ── PRACTICE SPRINTS ───────────────────────────────────────────────────────

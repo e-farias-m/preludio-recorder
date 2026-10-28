@@ -218,4 +218,8 @@ TRANSLATIONS.pt = {
   "First notes, first wins.": "Primeiras notas, primeiras vitórias.",
   "Pick a recorder to start your very first lessons — fingerings, notes, and your first sounds.": "Escolha uma flauta doce para começar suas primeiras aulas — digitações, notas e seus primeiros sons.",
   "Language": "Idioma",
+  "Welcome to Preludio Recorder!": "Bem-vindo ao Preludio Recorder!",
+  "What's your name?": "Qual é o seu nome?",
+  "Your name...": "Seu nome...",
+  "Start practicing": "Começar a praticar",
 };
