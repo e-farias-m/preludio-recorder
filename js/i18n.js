@@ -118,6 +118,28 @@ function applyI18nToDOM() {
           textNode.nodeValue = replaced;
         }
       });
+
+      // Also translate common attributes
+      document.querySelectorAll('[title], [aria-label], [placeholder]').forEach(el => {
+        ['title', 'aria-label', 'placeholder'].forEach(attr => {
+          const val = el.getAttribute(attr);
+          if (val && val.trim()) {
+            const trimmed = val.trim();
+            if (TRANSLATIONS.pt && Object.prototype.hasOwnProperty.call(TRANSLATIONS.pt, trimmed)) {
+              el.setAttribute(attr, TRANSLATIONS.pt[trimmed]);
+            } else if (TRANSLATIONS.pt) {
+              let replaced = val;
+              const keys = Object.keys(TRANSLATIONS.pt).sort((a, b) => b.length - a.length);
+              keys.forEach(key => {
+                if (key.length >= 2 && replaced.indexOf(key) !== -1) {
+                  replaced = replaced.split(key).join(TRANSLATIONS.pt[key]);
+                }
+              });
+              if (replaced !== val) el.setAttribute(attr, replaced);
+            }
+          }
+        });
+      });
     }
   } catch (e) {}
 }
