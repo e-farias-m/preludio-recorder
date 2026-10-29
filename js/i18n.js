@@ -123,6 +123,17 @@ function applyI18nToDOM() {
 }
 
 TRANSLATIONS.pt = {
+  "Make your first sound": "Faça seu primeiro som",
+  "On a recorder the sound starts with a gentle stream of air across the window — not by blowing hard.": "Na flauta doce, o som começa com um fluxo suave de ar sobre a janela — não soprando forte.",
+  "Hold the recorder level, lips soft around the mouthpiece.": "Mantenha a flauta doce na horizontal, lábios macios ao redor da embocadura.",
+  "Cover every hole fully with the pads of your fingers — no gaps.": "Cubra todos os buracos completamente com as almofadas dos dedos — sem folgas.",
+  "Take a small, warm breath — like fogging up a mirror.": "Respire pequeno e quente — como embaçando um espelho.",
+  "Blow a thin, steady stream of air. Not too hard!": "Sopre um fluxo fino e constante de ar. Não muito forte!",
+  "Listen for a clear, steady tone — that is your sound.": "Ouça um som limpo e constante — esse é o seu som.",
+  "Squeaking? Check for leaking finger holes and ease off the air. No sound? Blow slightly harder and make sure the window is not blocked.": "Chiando? Verifique se há vazamento nos buracos e diminua o ar. Sem som? Sopre um pouco mais forte e certifique-se de que a janela não está bloqueada.",
+  "Hear a target note": "Ouvir uma nota-alvo",
+  "Back to my path": "Voltar ao meu caminho",
+  "Got it — let’s play!": "Entendi — vamos tocar!",
   "Lesson": "Aula",
   "Map": "Mapa",
   "Practice": "Praticar",
