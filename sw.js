@@ -1,14 +1,16 @@
-const CACHE = 'preludio-v16';
+const CACHE = 'preludio-v17';
 const FILES = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon.svg',
-  '/css/styles.css',
-  '/js/app.js',
-  '/js/audio.js',
-  '/js/curriculum.js',
-  '/js/graphics.js',
+  './',
+  './index.html',
+  './manifest.json',
+  './icon.svg',
+  './css/styles.css',
+  './js/app.js',
+  './js/audio.js',
+  './js/curriculum.js',
+  './js/graphics.js',
+  './js/i18n.js',
+  './audio/hcb-piano.mp3',
 ];
 
 self.addEventListener('install', e => {
@@ -22,7 +24,7 @@ self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys => Promise.all(
       keys.filter(k => k !== CACHE).map(k => caches.delete(k))
-    ))
+    )).then(() => self.clients.claim())
   );
 });
 

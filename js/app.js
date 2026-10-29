@@ -1,3 +1,4 @@
+const LS = { getItem: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, setItem: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} }, removeItem: k => { try { localStorage.removeItem(k); } catch (e) {} } };
 // i18n fallbacks for environments that load app.js without i18n.js
 if (typeof t !== 'function') { var t = function(s){ return s; }; }
 if (typeof initLang !== 'function') { var initLang = function(){}; }
@@ -19,7 +20,7 @@ var CHORD_FREQS = {
 };
 
 const THEME_KEY = 'preludioRecorderTheme';
-function getTheme() { return (typeof localStorage !== 'undefined' && localStorage.getItem(THEME_KEY)) || 'dark'; }
+function getTheme() { return LS.getItem(THEME_KEY) || 'dark'; }
 function applyTheme(theme) {
   if (typeof document !== 'undefined' && document.documentElement) {
     document.documentElement.setAttribute('data-theme', theme);
@@ -27,7 +28,7 @@ function applyTheme(theme) {
     if (meta) meta.setAttribute('content', theme === 'light' ? '#F5F4FB' : '#0E0D1C');
   }
 }
-function setTheme(theme) { try { localStorage.setItem(THEME_KEY, theme); } catch (e) {} applyTheme(theme); }
+function setTheme(theme) { try { LS.setItem(THEME_KEY, theme); } catch (e) {} applyTheme(theme); }
 function toggleTheme() { setTheme(getTheme() === 'light' ? 'dark' : 'light'); }
 
 const APP = {
@@ -80,13 +81,13 @@ function clampSpeed(v) {
   return Math.max(SPEED_MIN, Math.min(SPEED_MAX, Number(n.toFixed(2))));
 }
 function getSavedSpeed() {
-  try { return clampSpeed(localStorage.getItem(SONG_SPEED_KEY)); }
+  try { return clampSpeed(LS.getItem(SONG_SPEED_KEY)); }
   catch (e) { return 1; }
 }
 function setSavedSpeed(v) {
   // localStorage may be unavailable (private mode); the in-memory APP value
   // still drives playback, so a failure here is harmless.
-  try { localStorage.setItem(SONG_SPEED_KEY, String(v)); } catch (e) {}
+  try { LS.setItem(SONG_SPEED_KEY, String(v)); } catch (e) {}
 }
 // Milliseconds per beat at the current practice speed, given the song's own
 // written tempo (baseBpm). The single source of truth for count-in and song.
@@ -97,37 +98,37 @@ function msPerBeatAt(baseBpm, speed) {
 
 // Last instrument the student opened — lets the home screen focus on one
 // instrument instead of the full set until they ask to switch.
-function getSavedInstrument() { return localStorage.getItem(INSTRUMENT_KEY) || ''; }
-function setSavedInstrument(id) { localStorage.setItem(INSTRUMENT_KEY, id); }
-function clearSavedInstrument() { localStorage.removeItem(INSTRUMENT_KEY); }
+function getSavedInstrument() { return LS.getItem(INSTRUMENT_KEY) || ''; }
+function setSavedInstrument(id) { LS.setItem(INSTRUMENT_KEY, id); }
+function clearSavedInstrument() { LS.removeItem(INSTRUMENT_KEY); }
 
 // First-sound guide has been seen per instrument (onboarding CTA state).
 const FIRST_SOUND_KEY = 'preludioRecorderFirstSound';
 function getFirstSoundSeenMap() {
-  try { return JSON.parse(localStorage.getItem(FIRST_SOUND_KEY) || '{}') || {}; }
+  try { return JSON.parse(LS.getItem(FIRST_SOUND_KEY) || '{}') || {}; }
   catch (e) { return {}; }
 }
 function getFirstSoundSeen(instrumentId) { return !!getFirstSoundSeenMap()[instrumentId]; }
 function markFirstSoundSeen(instrumentId) {
   const seen = getFirstSoundSeenMap();
   seen[instrumentId] = true;
-  localStorage.setItem(FIRST_SOUND_KEY, JSON.stringify(seen));
+  LS.setItem(FIRST_SOUND_KEY, JSON.stringify(seen));
 }
 
 const TUTORIAL_KEY = 'preludioRecorderTutorials';
 
 function getTutorialSeen(instrumentId) {
   let seen = [];
-  try { seen = JSON.parse(localStorage.getItem(TUTORIAL_KEY) || '[]'); } catch (e) {}
+  try { seen = JSON.parse(LS.getItem(TUTORIAL_KEY) || '[]'); } catch (e) {}
   return Array.isArray(seen) && seen.indexOf(instrumentId) !== -1;
 }
 function markTutorialSeen(instrumentId) {
   if (getTutorialSeen(instrumentId)) return;
   let seen = [];
-  try { seen = JSON.parse(localStorage.getItem(TUTORIAL_KEY) || '[]'); } catch (e) {}
+  try { seen = JSON.parse(LS.getItem(TUTORIAL_KEY) || '[]'); } catch (e) {}
   if (!Array.isArray(seen)) seen = [];
   seen.push(instrumentId);
-  localStorage.setItem(TUTORIAL_KEY, JSON.stringify(seen));
+  LS.setItem(TUTORIAL_KEY, JSON.stringify(seen));
 }
 
 // Recorders are all fipple flutes — one shared first-sound guide.
@@ -150,8 +151,8 @@ const FIRST_SOUND_CONTENT = {
 // ── ANALYTICS (local) ─────────────────────────────────────────────────────────
 const ANALYTICS_KEY = 'preludioRecorderAnalytics';
 
-function getStudentName() { return localStorage.getItem(NAME_KEY) || ''; }
-function setStudentName(name) { localStorage.setItem(NAME_KEY, name); }
+function getStudentName() { return LS.getItem(NAME_KEY) || ''; }
+function setStudentName(name) { LS.setItem(NAME_KEY, name); }
 
 function recordLessonComplete(lessonId, type, xpGained, stars) {
   const events = getAnalyticsEvents();
@@ -161,11 +162,11 @@ function recordLessonComplete(lessonId, type, xpGained, stars) {
     instrumentId: APP.instrumentId,
     studentName: getStudentName(),
   });
-  localStorage.setItem(ANALYTICS_KEY, JSON.stringify(events));
+  LS.setItem(ANALYTICS_KEY, JSON.stringify(events));
 }
 
 function getAnalyticsEvents() {
-  try { return JSON.parse(localStorage.getItem(ANALYTICS_KEY)) || []; }
+  try { return JSON.parse(LS.getItem(ANALYTICS_KEY)) || []; }
   catch { return []; }
 }
 
@@ -222,7 +223,7 @@ function todayKey(d = new Date()) {
 
 function loadMotivation() {
   try {
-    const raw = localStorage.getItem(MOTIVATION_KEY);
+    const raw = LS.getItem(MOTIVATION_KEY);
     APP.motivation = raw ? JSON.parse(raw) : null;
   } catch (e) { APP.motivation = null; }
   if (!APP.motivation || typeof APP.motivation !== 'object') APP.motivation = {};
@@ -237,7 +238,7 @@ function getMotivation() {
 
 function saveMotivation() {
   try {
-    localStorage.setItem(MOTIVATION_KEY, JSON.stringify(APP.motivation));
+    LS.setItem(MOTIVATION_KEY, JSON.stringify(APP.motivation));
   } catch (e) { /* storage unavailable — fail silently */ }
 }
 
@@ -584,7 +585,7 @@ function getMasteryLabel(level) {
 // ── PROGRESS PERSISTENCE ───────────────────────────────────────────────────
 function loadProgress() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = LS.getItem(STORAGE_KEY);
     APP.progress = raw ? JSON.parse(raw) : {};
   } catch (e) {
     APP.progress = {};
@@ -593,7 +594,7 @@ function loadProgress() {
 
 function saveProgress() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(APP.progress));
+    LS.setItem(STORAGE_KEY, JSON.stringify(APP.progress));
   } catch (e) { /* storage unavailable — fail silently */ }
 }
 
@@ -2583,6 +2584,7 @@ function runSongPlayback(inst, lesson) {
 
   if (hasAccomp) {
     AudioEngine.fetchAndDecode(accompData.url, function(buf) {
+      if (!buf) showToast(t('Accompaniment unavailable offline.'));
       kickoff(buf);
     });
   } else {
@@ -3075,7 +3077,7 @@ function handleAction(action, el) {
 
     case 'clear-analytics':
       if (!confirm('Clear all analytics data?')) return;
-      localStorage.removeItem(ANALYTICS_KEY);
+      LS.removeItem(ANALYTICS_KEY);
       showToast(t('Analytics cleared.'));
       APP.screen = 'select';
       render();
@@ -3095,7 +3097,7 @@ function handleAction(action, el) {
 
     case 'reset-progress': {
       if (!confirm('Are you sure? This will erase all progress for all instruments.')) return;
-      localStorage.removeItem(PROGRESS_KEY);
+      LS.removeItem(PROGRESS_KEY);
       APP.progress = {};
       showToast(t('Progress reset.'));
       APP.screen = 'select';

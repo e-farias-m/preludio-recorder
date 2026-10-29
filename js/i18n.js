@@ -212,6 +212,7 @@ TRANSLATIONS.pt = {
   "Au Clair de la Lune": "Ao Luar",
   "C Major Scale Waltz": "Valsa da Escala de Dó Maior",
   "Chord Practice": "Prática de Acordes",
+  "Accompaniment unavailable offline.": "Acompanhamento indisponível offline.",
   "Hear it": "Ouvir",
   "Play note": "Tocar nota",
   "Hear the model": "Ouvir o modelo",
