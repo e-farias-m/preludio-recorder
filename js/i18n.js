@@ -98,17 +98,19 @@ function applyI18nToDOM() {
           return;
         }
 
-        // Try solfege conversion for note names
+        // Try solfege conversion for note names (single letters)
         const sol = noteToSolfeggio(trimmed);
         if (sol !== trimmed) {
           textNode.nodeValue = original.replace(trimmed, sol);
           return;
         }
 
-        // Try partial matches for common patterns
+        // Try partial matches for common patterns - do more aggressively
         let replaced = original;
-        Object.keys(TRANSLATIONS.pt).forEach(key => {
-          if (key.length > 3 && replaced.indexOf(key) !== -1) {
+        // Sort by length descending to replace longer strings first
+        const keys = Object.keys(TRANSLATIONS.pt).sort((a, b) => b.length - a.length);
+        keys.forEach(key => {
+          if (key.length >= 2 && replaced.indexOf(key) !== -1) {
             replaced = replaced.split(key).join(TRANSLATIONS.pt[key]);
           }
         });
@@ -174,6 +176,9 @@ TRANSLATIONS.pt = {
   "See a note name, match its fingering fast.": "Veja o nome da nota, encontre a digitação correta rápido.",
   "Which note is this?": "Qual é esta nota?",
   "Which fingering plays this note?": "Qual digitação toca esta nota?",
+  "Which note does this fingering play?": "Qual nota esta digitação toca?",
+  "Which staff position matches this note?": "Qual posição na pauta corresponde a esta nota?",
+  "Which note matches this staff position?": "Qual nota corresponde a esta posição na pauta?",
   "correct in": "acertos em",
   "seconds": "segundos",
   "New best!": "Novo recorde!",
