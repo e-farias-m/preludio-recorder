@@ -3151,7 +3151,7 @@ function handleAction(action, el) {
       break;
 
     case 'clear-analytics':
-      if (!confirm('Clear all analytics data?')) return;
+      if (!confirm(tx('Clear all analytics data?'))) return;
       LS.removeItem(ANALYTICS_KEY);
       showToast(t('Analytics cleared.'));
       APP.screen = 'select';
@@ -3171,7 +3171,7 @@ function handleAction(action, el) {
     }
 
     case 'reset-progress': {
-      if (!confirm('Are you sure? This will erase all progress for all instruments.')) return;
+      if (!confirm(tx('Are you sure? This will erase all progress for all instruments.'))) return;
       LS.removeItem(PROGRESS_KEY);
       APP.progress = {};
       showToast(t('Progress reset.'));

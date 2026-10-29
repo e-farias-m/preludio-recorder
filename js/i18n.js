@@ -142,21 +142,8 @@ function applyI18nToDOM() {
           }
         }
 
-        // Try partial matches for common patterns - do more aggressively
-        let replaced = original;
-        // Sort by length descending to replace longer strings first
-        const keys = Object.keys(dict).sort((a, b) => b.length - a.length);
-        keys.forEach(key => {
-          if (key.length >= 2 && replaced.indexOf(key) !== -1) {
-            // Word-boundary aware replacement to avoid corrupting names
-            const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const re = new RegExp('(?<![\\w])' + escaped + '(?![\\w])', 'g');
-            replaced = replaced.replace(re, dict[key]);
-          }
-        });
-        if (replaced !== original) {
-          textNode.nodeValue = replaced;
-        }
+        // No free-form substring pass: it corrupted names ("Newman" -> "Novoman").
+        // Translation is exact match only, plus solfege conversion above.
       });
 
       // Also translate common attributes
@@ -169,22 +156,52 @@ function applyI18nToDOM() {
             if (dict2 && Object.prototype.hasOwnProperty.call(dict2, trimmed)) {
               el.setAttribute(attr, dict2[trimmed]);
             } else if (dict2) {
-              let replaced = val;
-              const keys = Object.keys(dict2).sort((a, b) => b.length - a.length);
-              keys.forEach(key => {
-                if (key.length >= 2 && replaced.indexOf(key) !== -1) {
-                  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                  const re = new RegExp('(?<![\\w])' + escaped + '(?![\\w])', 'g');
-                  replaced = replaced.replace(re, dict2[key]);
-                }
-              });
-              if (replaced !== val) el.setAttribute(attr, replaced);
+              // No free-form substring pass for attributes either.
             }
           }
         });
       });
     }
   } catch (e) {}
+}
+
+// MutationObserver for dynamic text (toasts, status lines, widgets)
+let _recObserver = null;
+function recStartObserver() {
+  if (_recObserver || typeof MutationObserver === 'undefined' || !document.body) return;
+  _recObserver = new MutationObserver(records => {
+    if (LANG === 'en') return;
+    const dict = TRANSLATIONS[LANG] || {};
+    for (const r of records) {
+      if (r.type === 'childList') {
+        r.addedNodes.forEach(node => {
+          if (node.nodeType === 3) {
+            const v = node.nodeValue, trimmed = v ? v.trim() : '';
+            if (trimmed && dict[trimmed]) node.nodeValue = v.replace(trimmed, dict[trimmed]);
+          }
+        });
+      } else if (r.type === 'characterData') {
+        const node = r.target;
+        const v = node.nodeValue, trimmed = v ? v.trim() : '';
+        if (trimmed && dict[trimmed]) node.nodeValue = v.replace(trimmed, dict[trimmed]);
+      }
+    }
+  });
+  _recObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+}
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', recStartObserver);
+  else recStartObserver();
+}
+
+
+function tx(str) {
+  if (typeof str !== 'string' || LANG === 'en') return str;
+  const trimmed = str.trim();
+  if (!trimmed) return str;
+  const dict = TRANSLATIONS[LANG] || {};
+  if (dict[trimmed]) return str.replace(trimmed, dict[trimmed]);
+  return str;
 }
 
 TRANSLATIONS.pt = {
