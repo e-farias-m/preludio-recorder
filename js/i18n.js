@@ -131,6 +131,8 @@ TRANSLATIONS.pt = {
   "Fingering chart": "Digitações",
   "Metronome": "Metrônomo",
   "Tuner": "Afinador",
+  "Metronome / Tuner": "Metrônomo / Afinador",
+  "Metronome / tuner": "Metrônomo / Afinador",
   "Play": "Tocar",
   "Listen": "Ouvir",
   "Next": "Próximo",
