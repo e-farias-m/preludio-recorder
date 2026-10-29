@@ -794,3 +794,28 @@ TRANSLATIONS.fr = {
   "You're set up on": "Vous êtes configuré sur",
   "Pick up where you left off.": "Continuez où vous vous êtes arrêté.",
 };
+
+
+// Additional entries (badges + UI strings)
+Object.assign(TRANSLATIONS.pt, {
+  "Build speed": "Ganhar velocidade",
+  "Complete a song": "Concluir uma canção",
+  "Complete your first lesson": "Conclua sua primeira aula",
+  "Earn 500 XP": "Ganhe 500 XP",
+  "Finish a full practice plan": "Conclua um plano de prática completo",
+  "Follow your lesson path": "Siga seu caminho de aulas",
+  "Keep it fresh": "Mantenha fresco",
+  "Learn every note on an instrument": "Aprenda todas as notas de um instrumento",
+  "Lesson complete!": "Aula concluída!",
+  "Next question": "Próxima pergunta",
+  "Play it yourself": "Toque você mesmo",
+  "Practice 3 days in a row": "Pratique 3 dias seguidos",
+  "Practice 7 days in a row": "Pratique 7 dias seguidos",
+  "Practice and tools": "Prática e ferramentas",
+  "Practice for 30 minutes in total": "Pratique por 30 minutos no total",
+  "Score 15 in a Finger gym sprint": "Faça 15 pontos em um sprint da Ginástica dos dedos",
+  "See it, then check it": "Veja, depois verifique",
+  "Student": "Aluno",
+  "Watch yourself grow": "Veja-se crescer",
+  "Shaky — needs review": "Instável — precisa revisar",
+});
