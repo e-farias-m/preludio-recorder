@@ -1,9 +1,12 @@
-const CACHE = 'preludio-v17';
+const CACHE = 'preludio-v18';
 const FILES = [
   './',
   './index.html',
   './manifest.json',
   './icon.svg',
+  './icon-180.png',
+  './icon-192.png',
+  './icon-512.png',
   './css/styles.css',
   './js/app.js',
   './js/audio.js',
