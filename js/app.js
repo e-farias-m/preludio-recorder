@@ -2879,12 +2879,13 @@ function handleAction(action, el) {
       break;
 
     case 'hear-note': {
+      AudioEngine.unlock();
       const inst = getInstrument(APP.instrumentId);
       const lesson = getLesson(APP.instrumentId, APP.lessonIndex);
       if (isSongLesson(lesson)) {
         const note = getResolvedSongNote(APP.instrumentId, lesson);
-        AudioEngine.playInstrumentNote(note.freq, inst.fingeringType, 1.1);
-      } else {
+        if (note && note.freq) AudioEngine.playInstrumentNote(note.freq, inst.fingeringType, 1.1);
+      } else if (lesson && lesson.freq) {
         AudioEngine.playInstrumentNote(lesson.freq, inst.fingeringType, 1.1);
       }
       break;
@@ -2989,6 +2990,7 @@ function handleAction(action, el) {
     }
 
     case 'play-start': {
+      AudioEngine.unlock();
       AudioEngine.unlock();
       const inst = getInstrument(APP.instrumentId);
       const lesson = getLesson(APP.instrumentId, APP.lessonIndex);
