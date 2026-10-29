@@ -67,11 +67,56 @@ function applyI18nToDOM() {
         const val = t(key);
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
           if (el.getAttribute('data-i18n-attr') === 'placeholder') el.placeholder = val;
+          else el.value = val;
         } else {
           el.textContent = val;
         }
       }
     });
+
+    if (LANG === 'pt') {
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+      const nodes = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        nodes.push(node);
+      }
+      nodes.forEach(textNode => {
+        const parent = textNode.parentElement;
+        if (!parent) return;
+        const tag = parent.tagName;
+        if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return;
+        if (parent.closest && parent.closest('[data-i18n-skip]')) return;
+        const original = textNode.nodeValue;
+        if (!original) return;
+        const trimmed = original.trim();
+        if (!trimmed) return;
+
+        // Try full string match first
+        if (TRANSLATIONS.pt && Object.prototype.hasOwnProperty.call(TRANSLATIONS.pt, trimmed)) {
+          textNode.nodeValue = original.replace(trimmed, TRANSLATIONS.pt[trimmed]);
+          return;
+        }
+
+        // Try solfege conversion for note names
+        const sol = noteToSolfeggio(trimmed);
+        if (sol !== trimmed) {
+          textNode.nodeValue = original.replace(trimmed, sol);
+          return;
+        }
+
+        // Try partial matches for common patterns
+        let replaced = original;
+        Object.keys(TRANSLATIONS.pt).forEach(key => {
+          if (key.length > 3 && replaced.indexOf(key) !== -1) {
+            replaced = replaced.split(key).join(TRANSLATIONS.pt[key]);
+          }
+        });
+        if (replaced !== original) {
+          textNode.nodeValue = replaced;
+        }
+      });
+    }
   } catch (e) {}
 }
 
