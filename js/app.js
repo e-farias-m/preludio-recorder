@@ -2339,6 +2339,7 @@ function render() {
   else if (APP.screen === 'settings') app.innerHTML = renderSettingsScreen();
   else if (APP.screen === 'analytics') app.innerHTML = renderAnalyticsScreen();
   else if (APP.screen === 'game') app.innerHTML = renderGameScreen();
+  if (typeof applyI18nToDOM === 'function') applyI18nToDOM();
   renderToolWidget();
   if (APP.showReference) {
     const refHtml = renderReferenceOverlay();
