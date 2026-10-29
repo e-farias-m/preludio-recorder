@@ -648,6 +648,25 @@ TRANSLATIONS.pt = {
   "What's your name?": "Qual é o seu nome?",
   "Your name...": "Seu nome...",
   "Start practicing": "Começar a praticar",
+// Badge translations
+  "First Steps": "Primeiros passos",
+  "First Steps: Complete your first lesson": "Primeiros passos: conclua sua primeira aula",
+  "First Song": "Primeira canção",
+  "First Song: Complete a song": "Primeira canção: conclua uma canção",
+  "Full Scale": "Escala completa",
+  "Full Scale: Learn every note on an instrument": "Escala completa: aprenda todas as notas de um instrumento",
+  "On a Roll": "Embalado",
+  "On a Roll: Practice 3 days in a row": "Embalado: pratique 3 dias seguidos",
+  "Week Strong": "Semana firme",
+  "Week Strong: Practice 7 days in a row": "Semana firme: pratique 7 dias seguidos",
+  "Marathon": "Maratona",
+  "Marathon: Practice for 30 minutes in total": "Maratona: pratique por 30 minutos no total",
+  "Rising Star": "Estrela em ascensão",
+  "Rising Star: Earn 500 XP": "Estrela em ascensão: ganhe 500 XP",
+  "Quick Fingers": "Dedos ágeis",
+  "Quick Fingers: Score 15 in a Finger gym sprint": "Dedos ágeis: faça 15 pontos em um sprint da Ginástica dos dedos",
+  "Planner": "Planejador",
+  "Planner: Finish a full practice plan": "Planejador: conclua um plano de prática completo",
 };
 
 // French (Canadian French) translations - starter set
