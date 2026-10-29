@@ -3041,6 +3041,7 @@ function handleAction(action, el) {
     // ── Settings ──────────────────────────────────────────────────────
     case 'toggle-language':
       setLang(getLang() === 'pt' ? 'en' : 'pt');
+      render();
       break;
     case 'toggle-theme':
       toggleTheme();
