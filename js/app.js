@@ -356,7 +356,7 @@ function evaluateBadges(opts = {}) {
   if (newly.length) {
     saveMotivation();
     if (opts.toast && typeof showToast === 'function') {
-      showToast(`${newly[0].icon} Badge unlocked: ${newly[0].name}`);
+      showToast(`${newly[0].icon} ${t('Badge unlocked:')} ${newly[0].name}`);
     }
   }
   return newly;
@@ -535,7 +535,7 @@ function completePlan(instrumentId) {
   saveMotivation();
   saveProgress();
   evaluateBadges({ toast: true });
-  showToast('\u{1F389} Plan complete! +' + bonus + ' XP');
+  showToast('\u{1F389} ' + t('Plan complete!') + ' +' + bonus + ' XP');
 }
 
 // ── SPRINT PERSONAL BESTS ──────────────────────────────────────────────────
@@ -704,11 +704,11 @@ function renderTunerPanel() {
   const freq = t && t.freq > 0 ? t.freq : 0;
   const detected = freq > 0 ? freqToNoteInfo(freq, getTunerNoteLessons()) : null;
   const noteName = detected ? t_noteName(detected.note) : '—';
-  const cents = detected ? (detected.cents > 0 ? '+' + Math.round(detected.cents) : Math.round(detected.cents)) + ' cents' : (running ? 'Listening…' : 'Press Tune');
+  const cents = detected ? (detected.cents > 0 ? '+' + Math.round(detected.cents) : Math.round(detected.cents)) + ' cents' : (running ? t('Listening…') : t('Press Tune'));
   return `<div class="tuner-panel" style="margin:12px auto;max-width:320px;padding:12px;border:1px solid var(--border);border-radius:12px;text-align:center;">
     <div style="font-size:28px;font-weight:700" id="tuner-note">${noteName}</div>
     <div style="font-size:13px;color:var(--text-muted)" id="tuner-cents">${cents}</div>
-    <button class="btn btn-secondary" data-action="toggle-tuner" style="margin-top:8px">${running ? '⏹ Stop' : '🎵 Tune'}</button>
+    <button class="btn btn-secondary" data-action="toggle-tuner" style="margin-top:8px">${running ? '⏹ ' + t('Stop') : '🎵 ' + t('Tune')}</button>
   </div>`;
 }
 
@@ -808,8 +808,8 @@ function renderInstrumentGrid() {
 function renderFocusCard(inst) {
   const ir = getInstrumentReport(inst.id);
   const progress = ir.xp > 0
-    ? `${ir.notesLearned}/${ir.notesTotal} notes · ${ir.songsCompleted}/${ir.songsTotal} songs`
-    : 'Ready for your first lesson';
+    ? `${ir.notesLearned}/${ir.notesTotal} ${t('notes')} · ${ir.songsCompleted}/${ir.songsTotal} ${t('songs')}`
+    : t('Ready for your first lesson');
   return `
     <div class="focus-instrument">
       <div class="focus-card" data-action="select-instrument" data-id="${inst.id}" style="color:${inst.accentColor}">
@@ -818,9 +818,9 @@ function renderFocusCard(inst) {
           <div class="focus-name">${escapeHtml(t(inst.name))}</div>
           <div class="focus-progress">${progress}</div>
         </div>
-        <div class="focus-go">Continue \u2192</div>
+        <div class="focus-go">${t('Continue')} \u2192</div>
       </div>
-      <button class="switch-instrument" data-action="switch-instrument">Switch instrument</button>
+      <button class="switch-instrument" data-action="switch-instrument">${t('Switch instrument')}</button>
     </div>`;
 }
 
@@ -867,8 +867,8 @@ function renderWeakSpots(instrumentId) {
   }).join('');
   return `
     <div class="weak-card">
-      <div class="weak-title">Focus areas</div>
-      <div class="weak-sub">Your drills will favour the notes you miss most.</div>
+      <div class="weak-title">${t('Focus areas')}</div>
+      <div class="weak-sub">${t('Your drills will favour the notes you miss most.')}</div>
       ${rows}
     </div>`;
 }
@@ -878,18 +878,18 @@ function renderPracticeTools() {
     <div class="tools-grid">
       <button class="tool-card" data-action="tools-tab" data-tab="metronome">
         <div class="tool-icon">\u{1F3B5}</div>
-        <div class="tool-name">Metronome / Tuner</div>
-        <div class="tool-sub">Open the floating metronome and tuner.</div>
+        <div class="tool-name">${t('Metronome / Tuner')}</div>
+        <div class="tool-sub">${t('Open the floating metronome and tuner.')}</div>
       </button>
       <button class="tool-card" data-action="tools-tab" data-tab="tuner">
         <div class="tool-icon">\u{1F3A4}</div>
-        <div class="tool-name">Tuner</div>
-        <div class="tool-sub">Check your pitch against the floating tuner.</div>
+        <div class="tool-name">${t('Tuner')}</div>
+        <div class="tool-sub">${t('Check your pitch against the floating tuner.')}</div>
       </button>
       <button class="tool-card" data-action="open-lookup">
         <div class="tool-icon">\u{1F3BC}</div>
-        <div class="tool-name">Fingering chart</div>
-        <div class="tool-sub">Look up any note's fingering and sound.</div>
+        <div class="tool-name">${t('Fingering chart')}</div>
+        <div class="tool-sub">${t("Look up any note's fingering and sound.")}</div>
       </button>
     </div>`;
 }
@@ -901,8 +901,8 @@ function renderPracticeScreen() {
   const learned = getLearnedNotes(APP.instrumentId);
   const ready = learned.length >= 2;
   const modes = [
-    { mode: SPRINT_MODES.SIGHT, title: 'Sight-reading', sub: 'See a note on the staff, name it fast.' },
-    { mode: SPRINT_MODES.FINGER, title: 'Finger gym', sub: 'See a note name, match its fingering fast.' },
+    { mode: SPRINT_MODES.SIGHT, title: t('Sight-reading'), sub: t('See a note on the staff, name it fast.') },
+    { mode: SPRINT_MODES.FINGER, title: t('Finger gym'), sub: t('See a note name, match its fingering fast.') },
   ];
   const cards = modes.map(m => {
     const best = getSprintBest(APP.instrumentId, m.mode);
@@ -910,7 +910,7 @@ function renderPracticeScreen() {
       <button class="sprint-card" data-action="start-sprint" data-mode="${m.mode}" ${ready ? '' : 'disabled'}>
         <div class="sprint-card-title">${m.title}</div>
         <div class="sprint-card-sub">${m.sub}</div>
-        <div class="sprint-card-best">${best ? `Best: ${best}` : 'No score yet'}</div>
+        <div class="sprint-card-best">${best ? `${t('Best:')} ${best}` : t('No score yet')}</div>
       </button>`;
   }).join('');
 
@@ -918,12 +918,12 @@ function renderPracticeScreen() {
     <div class="screen active practice-screen">
       <div class="app-header">
         <button class="header-back" data-action="close-practice">\u2190</button>
-        <div class="header-title">Practice \u00b7 ${inst.shortName}</div>
+        <div class="header-title">${t('Practice')} \u00b7 ${inst.shortName}</div>
       </div>
       <div class="lesson-body">
         <div class="practice-intro">${ready
-          ? `${SPRINT_SECONDS} seconds. How many can you get?`
-          : 'Finish a couple of lessons to unlock the timed drills.'}</div>
+          ? `${SPRINT_SECONDS} ${t('seconds')}. ${t('How many can you get?')}`
+          : t('Finish a couple of lessons to unlock the timed drills.')}</div>
         <div class="sprint-cards">${cards}</div>
         ${renderWeakSpots(APP.instrumentId)}
         ${renderPracticeTools()}
@@ -935,7 +935,7 @@ function renderSprintView(inst) {
   const s = APP.sprint;
   if (s.finished) {
     const best = getSprintBest(APP.instrumentId, s.mode);
-    const title = s.mode === SPRINT_MODES.SIGHT ? 'Sight-reading' : 'Finger gym';
+    const title = s.mode === SPRINT_MODES.SIGHT ? t('Sight-reading') : t('Finger gym');
     return `
       <div class="screen active practice-screen">
         <div class="app-header">
@@ -944,13 +944,13 @@ function renderSprintView(inst) {
         </div>
         <div class="complete-layout">
           <div class="sprint-result-score">${s.score}</div>
-          <div class="complete-sub">correct in ${SPRINT_SECONDS} seconds</div>
-          ${s.isBest ? `<div class="sprint-best-badge">New best!</div>` : `<div class="sprint-result-best">Best: ${best}</div>`}
+          <div class="complete-sub">${t('correct in')} ${SPRINT_SECONDS} ${t('seconds')}</div>
+          ${s.isBest ? `<div class="sprint-best-badge">${t('New best!')}</div>` : `<div class="sprint-result-best">${t('Best:')} ${best}</div>`}
           <div class="complete-xp">+${s.xp} XP</div>
           <div class="gap-lg"></div>
-          <button class="btn btn-primary btn-wide" data-action="sprint-again">Play again</button>
+          <button class="btn btn-primary btn-wide" data-action="sprint-again">${t('Play again')}</button>
           <div class="gap-sm"></div>
-          <button class="btn btn-secondary btn-wide" data-action="exit-sprint">Done</button>
+          <button class="btn btn-secondary btn-wide" data-action="exit-sprint">${t('Done')}</button>
         </div>
       </div>`;
   }
@@ -984,7 +984,7 @@ function renderSprintView(inst) {
         </div>
       </div>
       <div class="lesson-body">
-        <div class="lesson-instruction">${q.mode === SPRINT_MODES.SIGHT ? 'Which note is this?' : 'Which fingering plays this note?'}</div>
+        <div class="lesson-instruction">${q.mode === SPRINT_MODES.SIGHT ? t('Which note is this?') : t('Which fingering plays this note?')}</div>
         <div class="quiz-prompt">${promptHtml}</div>
         <div class="quiz-options sprint-options">${optionsHtml}</div>
       </div>
@@ -1018,7 +1018,7 @@ function buildSprintQuestion(instrumentId, mode) {
 
 function startSprint(mode) {
   const learned = getLearnedNotes(APP.instrumentId);
-  if (learned.length < 2) { showToast('Learn a couple of notes first.'); return; }
+  if (learned.length < 2) { showToast(t('Learn a couple of notes first.')); return; }
   APP.sprint = {
     mode,
     endsAt: Date.now() + SPRINT_SECONDS * 1000,
@@ -1110,7 +1110,7 @@ function renderReportScreen() {
   const cards = report.instruments.map(r => {
     const pct = r.notesTotal ? Math.round((r.notesLearned / r.notesTotal) * 100) : 0;
     const weak = r.weak.length
-      ? `<div class="report-focus">Focus: ${r.weak.map(w => `${escapeHtml(w.name)} (${w.accuracy}%)`).join(', ')}</div>`
+      ? `<div class="report-focus">${t('Focus:')} ${r.weak.map(w => `${escapeHtml(w.name)} (${w.accuracy}%)`).join(', ')}</div>`
       : '';
     return `
       <div class="report-card">
@@ -1127,17 +1127,17 @@ function renderReportScreen() {
         </div>
         ${weak}
       </div>`;
-  }).join('') || '<div class="report-empty">No practice recorded yet \u2014 play a lesson to start the report.</div>';
+  }).join('') || '<div class="report-empty">' + t('No practice recorded yet — play a lesson to start the report.') + '</div>';
 
   const badges = report.badges.length
     ? report.badges.map(b => `<span class="report-badge">${escapeHtml(b)}</span>`).join('')
-    : '<span class="report-badge-empty">No badges yet</span>';
+    : '<span class="report-badge-empty">' + t('No badges yet') + '</span>';
 
   return `
     <div class="screen active report-screen">
       <div class="app-header">
         <button class="header-back" data-action="close-report">\u2190</button>
-        <div class="header-title">Practice report</div>
+        <div class="header-title">${t('Practice report')}</div>
       </div>
       <div class="lesson-body">
         <div class="report-hero">
@@ -1148,9 +1148,9 @@ function renderReportScreen() {
           </div>
         </div>
         ${statChips}
-        <div class="report-section-label">Instruments</div>
+        <div class="report-section-label">${t('Instruments')}</div>
         ${cards}
-        <div class="report-section-label">Badges \u00b7 ${report.badges.length}/${report.badgeTotal}</div>
+        <div class="report-section-label">${t('Badges')} \u00b7 ${report.badges.length}/${report.badgeTotal}</div>
         <div class="report-badges">${badges}</div>
         <div class="report-actions">
           <button class="btn btn-primary" data-action="copy-report">Copy summary</button>
@@ -1171,7 +1171,7 @@ function renderSelectScreen() {
   const motivationHtml = studentName ? renderStudentCard(studentName) : '';
   const badgesHtml = studentName ? renderBadgeShelf() : '';
   const reportHtml = studentName
-    ? `<button class="btn btn-secondary report-open" data-action="open-report">\u{1F4CB} Progress report</button>`
+    ? `<button class="btn btn-secondary report-open" data-action="open-report">\u{1F4CB} ${t('Progress report')}</button>`
     : '';
 
   let headline;
@@ -1181,7 +1181,7 @@ function renderSelectScreen() {
     headline = t('First notes, first wins.');
     sub = t('Pick a recorder to start your very first lessons — fingerings, notes, and your first sounds.');
     instrumentArea = `
-      ${savedInst ? `<button class="picker-back" data-action="cancel-instrument-pick">\u2190 Back to ${savedInst.shortName}</button>` : ''}
+      ${savedInst ? `<button class="picker-back" data-action="cancel-instrument-pick">\u2190 ${t('Back to')} ${savedInst.shortName}</button>` : ''}
       ${renderInstrumentGrid()}`;
   } else {
     headline = studentName ? `Ready, ${escapeHtml(studentName)}?` : 'Ready to play?';
@@ -1223,20 +1223,20 @@ function renderSettingsScreen() {
     <div class="screen active settings-screen">
       <div class="settings-header">
         <button class="btn-icon" data-action="close-settings" style="background:none;border:none;cursor:pointer;font-size:24px;">←</button>
-        <h2>Settings</h2>
+        <h2>${t('Settings')}</h2>
       </div>
       <div class="settings-body">
         <div class="settings-section">
-          <label class="settings-label">Student name</label>
+          <label class="settings-label">${t('Student name')}</label>
           <div class="settings-row">
             <input type="text" id="settings-name-input" class="settings-input" value="${escapeHtml(name)}" maxlength="50" autocomplete="off" />
-            <button class="btn btn-primary" data-action="save-settings-name">Save</button>
+            <button class="btn btn-primary" data-action="save-settings-name">${t('Save')}</button>
           </div>
         </div>
         <div class="settings-section">
-          <label class="settings-label">Reset progress</label>
-          <p class="settings-desc">Clear all lesson progress and XP for all instruments. This cannot be undone.</p>
-          <button class="btn btn-danger" data-action="reset-progress">Reset all progress</button>
+          <label class="settings-label">${t('Reset progress')}</label>
+          <p class="settings-desc">${t('Clear all lesson progress and XP for all instruments. This cannot be undone.')}</p>
+          <button class="btn btn-danger" data-action="reset-progress">${t('Reset all progress')}</button>
         </div>
       </div>
     </div>`;
@@ -1259,16 +1259,16 @@ function renderAnalyticsScreen() {
 
   const instrumentRows = Object.entries(byInstrument).map(([id, data]) => {
     const name = CURRICULUM[id]?.shortName || id;
-    return `<div class="stat-row"><span class="stat-label">${escapeHtml(name)}</span><span class="stat-value">${data.lessons} lessons · ${data.xp} XP</span></div>`;
+    return `<div class="stat-row"><span class="stat-label">${escapeHtml(name)}</span><span class="stat-value">${data.lessons} ${t('lessons')} · ${data.xp} XP</span></div>`;
   }).join('');
 
   const recentEvents = events.slice(-20).reverse().map(e => {
     const date = new Date(e.timestamp);
     const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const typeLabel = { lesson: 'Lesson', review: 'Review', song: 'Song' }[e.type] || e.type;
+    const typeLabel = { lesson: t('Lesson'), review: t('Review'), song: t('Song') }[e.type] || e.type;
     const inst = CURRICULUM[e.instrumentId]?.shortName || e.instrumentId || '';
     return `<div class="event-row"><span class="event-type">${typeLabel}</span><span class="event-lesson">${e.lessonId || ''}</span><span class="event-xp">+${e.xpGained || 0} XP</span><span class="event-date">${timeStr}</span></div>`;
-  }).join('') || '<div class="stat-row" style="color:var(--text-muted)">No activity yet — complete a lesson!</div>';
+  }).join('') || `<div class="stat-row" style="color:var(--text-muted)">${t('No activity yet — complete a lesson!')}</div>`;
 
   const starCount = events.filter(e => e.stars === 3).length;
   const pct = lessonCount ? Math.round((starCount / lessonCount) * 100) : 0;
@@ -1277,23 +1277,23 @@ function renderAnalyticsScreen() {
     <div class="screen active analytics-screen">
       <div class="analytics-header">
         <button class="header-back" data-action="close-analytics">←</button>
-        <h2>Your Stats</h2>
+        <h2>${t('Your Stats')}</h2>
       </div>
       <div class="analytics-body">
         <div class="analytics-cards">
-          <div class="analytics-card"><span class="card-stat">${totalXp}</span><span class="card-label">Total XP</span></div>
-          <div class="analytics-card"><span class="card-stat">${lessonCount}</span><span class="card-label">Lessons done</span></div>
-          <div class="analytics-card"><span class="card-stat">${streak.count}</span><span class="card-label">Day streak</span></div>
-          <div class="analytics-card"><span class="card-stat">${pct}%</span><span class="card-label">3-star rate</span></div>
+          <div class="analytics-card"><span class="card-stat">${totalXp}</span><span class="card-label">${t('Total XP')}</span></div>
+          <div class="analytics-card"><span class="card-stat">${lessonCount}</span><span class="card-label">${t('Lessons done')}</span></div>
+          <div class="analytics-card"><span class="card-stat">${streak.count}</span><span class="card-label">${t('Day streak')}</span></div>
+          <div class="analytics-card"><span class="card-stat">${pct}%</span><span class="card-label">${t('3-star rate')}</span></div>
         </div>
         <div class="analytics-section">
-          <div class="analytics-section-title">Per instrument</div>
+          <div class="analytics-section-title">${t('Per instrument')}</div>
           <div class="stats-list">${instrumentRows}</div>
         </div>
         <div class="analytics-section">
-          <div class="analytics-section-title">Recent activity</div>
+          <div class="analytics-section-title">${t('Recent activity')}</div>
           <div class="events-list">${recentEvents}</div>
-          <button class="btn btn-danger" data-action="clear-analytics" style="margin-top:16px">Clear analytics data</button>
+          <button class="btn btn-danger" data-action="clear-analytics" style="margin-top:16px">${t('Clear analytics data')}</button>
         </div>
       </div>
     </div>`;
@@ -1315,11 +1315,11 @@ function renderReferenceOverlay() {
         </div>
         <div class="reference-diagrams">
           <div class="reference-diagram">
-            <div class="reference-diagram-label">Fingering</div>
+            <div class="reference-diagram-label">${t('Fingering')}</div>
             <div class="reference-diagram-svg">${fingeringSvg}</div>
           </div>
           <div class="reference-diagram">
-            <div class="reference-diagram-label">On the staff</div>
+            <div class="reference-diagram-label">${t('On the staff')}</div>
             <div class="reference-diagram-svg">${staffSvg}</div>
           </div>
         </div>
@@ -1343,35 +1343,35 @@ function buildTutorialSlides(inst) {
   return [
     {
       icon: '\u{1F389}',
-      title: `You're set up on ${t(inst.name)}`,
-      body: `Welcome! This is a one-minute tour of how the app works. You can skip it and replay it any time from your lesson map.`,
+      title: t(`You're set up on ${inst.name}`),
+      body: t('Welcome! This is a one-minute tour of how the app works. You can skip it and replay it any time from your lesson map.'),
       visual: instrumentArt,
     },
     {
       icon: '\u{1F5FA}\uFE0F',
-      title: 'Follow your lesson path',
-      body: `Every note and song is a stop on your ${inst.shortName} map. Finish one step to unlock the next \u2014 a \u{1F512} just means the step before it is still waiting.`,
+      title: t('Follow your lesson path'),
+      body: t(`Every note and song is a stop on your ${inst.shortName} map. Finish one step to unlock the next — a 🔒 just means the step before it is still waiting.`),
     },
     {
       icon: '\u{1F440}',
-      title: 'See it, then check it',
-      body: 'Each new note shows its name, sound, and fingering. Tap \u201CHear it,\u201D then answer a quick check to lock the note in.',
+      title: t('See it, then check it'),
+      body: t('Each new note shows its name, sound, and fingering. Tap "Hear it," then answer a quick check to lock the note in.'),
       visual: noteArt,
     },
     {
       icon: '\u{1F3B5}',
-      title: 'Play it yourself',
-      body: 'Then play the note on your instrument. Songs walk you through one note at a time before you take the quiz.',
+      title: t('Play it yourself'),
+      body: t('Then play the note on your instrument. Songs walk you through one note at a time before you take the quiz.'),
     },
     {
       icon: '\u{1F94B}',
-      title: 'Practice and tools',
-      body: 'Finger-gym sprints build speed, and the floating metronome and tuner (bottom right) keep you steady and in tune.',
+      title: t('Practice and tools'),
+      body: t('Finger-gym sprints build speed, and the floating metronome and tuner (bottom right) keep you steady and in tune.'),
     },
     {
       icon: '\u2B50',
-      title: 'Watch yourself grow',
-      body: 'You earn XP, streaks, and badges as you play. Ready? Let\u2019s play!',
+      title: t('Watch yourself grow'),
+      body: t('You earn XP, streaks, and badges as you play. Ready? Let\'s play!'),
     },
   ];
 }
@@ -1388,7 +1388,7 @@ function renderTutorialScreen() {
     <div class="screen active tutorial-screen">
       <div class="app-header">
         <button class="header-back" data-action="tutorial-finish" title="Skip the tour">\u2715</button>
-        <div class="header-title">Quick tour</div>
+        <div class="header-title">${t('Quick tour')}</div>
       </div>
       <div class="tutorial-body">
         <div class="tutorial-art">${art}</div>
@@ -1398,8 +1398,8 @@ function renderTutorialScreen() {
       </div>
       <div class="action-bar">
         <div class="tutorial-actions">
-          <button class="btn btn-secondary" data-action="tutorial-back" ${i === 0 ? 'disabled' : ''}>Back</button>
-          <button class="btn btn-primary" data-action="tutorial-next">${last ? 'Start playing' : 'Next'}</button>
+          <button class="btn btn-secondary" data-action="tutorial-back" ${i === 0 ? 'disabled' : ''}>${t('Back')}</button>
+          <button class="btn btn-primary" data-action="tutorial-next">${last ? t('Start playing') : t('Next')}</button>
         </div>
       </div>
     </div>`;
@@ -1419,10 +1419,10 @@ function renderLookupScreen() {
       <div class="screen active lookup-screen">
         <div class="app-header">
           <button class="header-back" data-action="close-lookup">\u2190</button>
-          <div class="header-title">Fingering chart \u00b7 ${inst.shortName}</div>
+          <div class="header-title">${t('Fingering chart')} \u00b7 ${inst.shortName}</div>
         </div>
         <div class="lesson-body">
-          <div class="practice-intro">No notes to show yet.</div>
+          <div class="practice-intro">${t('No notes to show yet.')}</div>
         </div>
       </div>`;
   }
@@ -1451,7 +1451,7 @@ function renderLookupScreen() {
     <div class="screen active lookup-screen">
       <div class="app-header">
         <button class="header-back" data-action="close-lookup">\u2190</button>
-        <div class="header-title">Fingering chart \u00b7 ${inst.shortName}</div>
+        <div class="header-title">${t('Fingering chart')} \u00b7 ${inst.shortName}</div>
       </div>
       <div class="lesson-body">
         <div class="lookup-detail">
@@ -1466,10 +1466,10 @@ function renderLookupScreen() {
             </div>
           </div>
           <div class="lookup-name">${escapeHtml(t(selected.noteName))}</div>
-          <div class="lookup-desc">${escapeHtml(selected.description || '')}</div>
-          <button class="btn btn-secondary btn-wide" data-action="lookup-hear">\u{1F50A} Hear it</button>
+          <div class="lookup-desc">${escapeHtml(t(selected.description || ''))}</div>
+          <button class="btn btn-secondary btn-wide" data-action="lookup-hear">\u{1F50A} ${t('Hear it')}</button>
         </div>
-        <div class="lookup-grid-label">${learnedIds.size} of ${notes.length} notes learned</div>
+        <div class="lookup-grid-label">${learnedIds.size} ${t('of')} ${notes.length} ${t('notes learned')}</div>
         <div class="lookup-grid">${cards}</div>
       </div>
     </div>`;
@@ -1508,11 +1508,11 @@ function renderPlanCard(instrumentId) {
   return `
     <div class="plan-card ${allDone ? 'plan-card-done' : ''}">
       <div class="plan-header">
-        <div class="plan-title">Today\u2019s Plan</div>
+        <div class="plan-title">${t("Today's Plan")}</div>
         <div class="plan-count">${done}/${total}</div>
       </div>
       <div class="plan-items">${rows}</div>
-      ${allDone ? '<div class="plan-done-note">\u{1F389} All done \u2014 nice work!</div>' : ''}
+      ${allDone ? '<div class="plan-done-note">\u{1F389} ' + t('All done — nice work!') + '</div>' : ''}
     </div>`;
 }
 
@@ -1525,7 +1525,7 @@ function renderFirstSoundScreen() {
   const steps = content.steps.map((step, i) => `
     <li class="first-sound-step">
       <span class="first-sound-step-num">${i + 1}</span>
-      <span class="first-sound-step-text">${escapeHtml(step)}</span>
+      <span class="first-sound-step-text">${escapeHtml(t(step))}</span>
     </li>`).join('');
   const hearBtn = firstNote
     ? `<button class="btn btn-secondary btn-wide" data-action="first-sound-hear" style="margin-top:4px">\u{1F50A} Hear a target note</button>`
@@ -1535,17 +1535,17 @@ function renderFirstSoundScreen() {
     <div class="screen active first-sound-screen">
       <div class="app-header">
         <button class="header-back" data-action="close-first-sound">\u2190</button>
-        <div class="header-title">First sound \u00b7 ${inst.shortName}</div>
+        <div class="header-title">${t('First sound')} \u00b7 ${inst.shortName}</div>
       </div>
       <div class="lesson-body">
         <div class="first-sound-hero">${content.emoji}</div>
-        <div class="first-sound-title">${escapeHtml(content.title)}</div>
-        <div class="first-sound-intro">${escapeHtml(content.intro)}</div>
+        <div class="first-sound-title">${escapeHtml(t(content.title))}</div>
+        <div class="first-sound-intro">${escapeHtml(t(content.intro))}</div>
         <ol class="first-sound-steps">${steps}</ol>
-        <div class="first-sound-tip"><strong>Tip</strong> ${escapeHtml(content.tip)}</div>
+        <div class="first-sound-tip"><strong>${t('Tip')}</strong> ${escapeHtml(t(content.tip))}</div>
         ${hearBtn}
         <div class="action-bar">
-          <button class="btn btn-primary btn-wide" data-action="first-sound-done">${seen ? 'Back to my path' : 'Got it \u2014 let\u2019s play!'}</button>
+          <button class="btn btn-primary btn-wide" data-action="first-sound-done">${seen ? t('Back to my path') : t('Got it \u2014 let\u2019s play!')}</button>
         </div>
       </div>
     </div>`;
@@ -1617,7 +1617,7 @@ function renderMapScreen() {
     <div class="screen active">
       <div class="app-header">
         <button class="header-back" data-action="go-select">←</button>
-        <div class="header-title">${inst.shortName}</div>
+        <div class="header-title">${t(inst.shortName)}</div>
         <div class="header-progress">
           <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
           <div class="progress-label">${doneCount}/${total}</div>
@@ -1628,26 +1628,26 @@ function renderMapScreen() {
         <div class="first-sound-cta${getFirstSoundSeen(APP.instrumentId) ? ' first-sound-cta-seen' : ''}" data-action="open-first-sound">
           <div class="first-sound-cta-emoji">${FIRST_SOUND_CONTENT.recorder.emoji}</div>
           <div class="first-sound-cta-text">
-            <div class="first-sound-cta-title">${getFirstSoundSeen(APP.instrumentId) ? 'Warm up your sound' : 'New here? Make your first sound'}</div>
-            <div class="first-sound-cta-sub">${getFirstSoundSeen(APP.instrumentId) ? 'Breathing and tone reminders before you play.' : 'A quick guide to your first sound, before note one.'}</div>
+            <div class="first-sound-cta-title">${getFirstSoundSeen(APP.instrumentId) ? t('Warm up your sound') : t('New here? Make your first sound')}</div>
+            <div class="first-sound-cta-sub">${getFirstSoundSeen(APP.instrumentId) ? t('Breathing and tone reminders before you play.') : t('A quick guide to your first sound, before note one.')}</div>
           </div>
           <div class="first-sound-cta-arrow">›</div>
         </div>
         <div class="practice-banner ${practiceReady ? '' : 'practice-banner-locked'}">
           <div class="practice-banner-text">
-            <div class="practice-banner-title">Practice drills</div>
-            <div class="practice-banner-sub">${practiceReady ? 'Timed games to build speed and confidence.' : 'Learn 2 notes to unlock timed drills.'}</div>
+            <div class="practice-banner-title">${t('Practice drills')}</div>
+            <div class="practice-banner-sub">${practiceReady ? t('Timed games to build speed and confidence.') : t('Learn 2 notes to unlock timed drills.')}</div>
             ${bestLine}
           </div>
-          <button class="btn btn-primary" data-action="open-practice" ${practiceReady ? '' : 'disabled'}>Practice</button>
+          <button class="btn btn-primary" data-action="open-practice" ${practiceReady ? '' : 'disabled'}>${t('Practice')}</button>
         </div>
-        <div class="map-unit-label">Unit 1 · First Notes</div>
+        <div class="map-unit-label">${t('Unit 1 · First Notes')}</div>
         <div class="map-path">${nodes}</div>
         <div class="map-guide">
-          <button class="map-guide-link" data-action="open-lookup">🎼 Fingering chart</button>
-          <button class="map-guide-link" data-action="open-tutorial">❔ How this app works</button>
+          <button class="map-guide-link" data-action="open-lookup">🎼 ${t('Fingering chart')}</button>
+          <button class="map-guide-link" data-action="open-tutorial">❔ ${t('How this app works')}</button>
         </div>
-        ${doneCount > 0 ? `<button class="btn btn-secondary game-launch-btn" data-action="open-game" style="margin-top:20px;width:100%">🎯 Sight Reading Challenge</button>` : ''}
+        ${doneCount > 0 ? `<button class="btn btn-secondary game-launch-btn" data-action="open-game" style="margin-top:20px;width:100%">🎯 ${t('Sight Reading Challenge')}</button>` : ''}
       </div>
     </div>`;
 }
@@ -1708,15 +1708,15 @@ function renderPresentPhase(inst, lesson) {
 
   return `
     <div class="lesson-body">
-      <div class="lesson-instruction">${isReview ? 'Review this note' : 'Meet your next note'}</div>
+      <div class="lesson-instruction">${isReview ? t('Review this note') : t('Meet your next note')}</div>
       ${reviewLabel}
       <div class="present-layout">
         <div class="present-diagram-wrap">
-          <div class="present-diagram-label">Fingering</div>
+          <div class="present-diagram-label">${t('Fingering')}</div>
           <div class="present-diagram-svg">${fingeringSvg}</div>
         </div>
         <div class="present-notation-wrap">
-          <div class="present-diagram-label">On the staff</div>
+          <div class="present-diagram-label">${t('On the staff')}</div>
           <div class="present-diagram-svg">${staffSvg}</div>
         </div>
       </div>
@@ -1785,24 +1785,24 @@ function renderSongPresentPhase(inst, lesson) {
     ? Graphics.melodySVG({ notes: melodyNotes, highlightIndex, clef: inst.clef, accentColor: inst.accentColor, width: 320 })
     : '';
 
-  const playLabel = playback.finished ? '\u21BB Replay' : '\u25B6 Play whole melody';
+  const playLabel = playback.finished ? '\u21BB ' + t('Replay') : '\u25B6 ' + t('Play whole melody');
   const playAction = playback.finished ? 'song-replay' : 'song-play';
 
   return `
     <div class="lesson-body">
       <div class="lesson-instruction">${escapeHtml(t(lesson.noteName))}</div>
-      <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:16px">Note ${currentNum} of ${totalNotes}</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:16px">${t('Note')} ${currentNum} ${t('of')} ${totalNotes}</div>
       ${melodySvg ? `<div class="song-melody-wrap">
-        <div class="present-diagram-label">Sheet music</div>
+        <div class="present-diagram-label">${t('Sheet music')}</div>
         <div class="song-melody-svg">${melodySvg}</div>
       </div>` : ''}
       <div class="present-layout">
         <div class="present-diagram-wrap">
-          <div class="present-diagram-label">Fingering</div>
+          <div class="present-diagram-label">${t('Fingering')}</div>
           <div class="present-diagram-svg">${fingeringSvg}</div>
         </div>
         <div class="present-notation-wrap">
-          <div class="present-diagram-label">On the staff</div>
+          <div class="present-diagram-label">${t('On the staff')}</div>
           <div class="present-diagram-svg">${staffSvg}</div>
         </div>
       </div>
@@ -1811,9 +1811,9 @@ function renderSongPresentPhase(inst, lesson) {
       </div>
       <div class="gap-md"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-secondary" data-action="song-prev" ${isFirst ? 'disabled' : ''}>\u2039 Prev</button>
-        <button class="btn-hear" data-action="hear-note"><span class="hear-icon">\u{1F50A}</span> Play note</button>
-        <button class="btn btn-secondary" data-action="song-next" ${isLast ? 'disabled' : ''}>Next \u203A</button>
+        <button class="btn btn-secondary" data-action="song-prev" ${isFirst ? 'disabled' : ''}>\u2039 ${t('Prev')}</button>
+        <button class="btn-hear" data-action="hear-note"><span class="hear-icon">\u{1F50A}</span> ${t('Play note')}</button>
+        <button class="btn btn-secondary" data-action="song-next" ${isLast ? 'disabled' : ''}>${t('Next')} \u203A</button>
       </div>
       <div class="song-playback-controls">
         <button class="btn btn-secondary" data-action="${playAction}" ${playback.active ? 'disabled' : ''}>${playLabel}</button>
@@ -2194,11 +2194,11 @@ function renderGameScreen() {
     const staffSvg = Graphics.staffSVG({ pos: current.staffStep, accidental: current.accidental, clef: inst.clef, accentColor: inst.accentColor, width: 100 });
     noteDisplay = `<div class="game-staff">${staffSvg}</div>`;
   } else if (current && state.showingResult !== undefined) {
-    noteDisplay = `<div class="game-result">${state.showingResult ? '✓' : '✗'} ${current.noteName}</div>`;
+    noteDisplay = `<div class="game-result">${state.showingResult ? '✓' : '✗'} ${t(current.noteName)}</div>`;
   }
 
   const options = (state.choices || []).map(c => {
-    return `<button class="btn game-option-btn" data-action="game-answer" data-note="${c}">${c}</button>`;
+    return `<button class="btn game-option-btn" data-action="game-answer" data-note="${c}">${t(c)}</button>`;
   }).join('');
 
   const progressHtml = `<div class="game-progress">${score}/${total}</div>`;
@@ -2207,7 +2207,7 @@ function renderGameScreen() {
   return `
     <div class="screen active game-screen">
       <div class="game-header">
-        <span class="game-title">Sight Reading</span>
+        <span class="game-title">${t('Sight Reading')}</span>
         ${timerHtml}
       </div>
       <div class="game-body">
@@ -2219,8 +2219,8 @@ function renderGameScreen() {
         <div class="game-over">
           <div class="game-over-score">${score} / ${total}</div>
           <div class="game-over-pct">${total ? Math.round(score/total*100) : 0}%</div>
-          <button class="btn btn-primary" data-action="game-replay">Play again</button>
-          <button class="btn btn-secondary" data-action="close-game">Back</button>
+          <button class="btn btn-primary" data-action="game-replay">${t('Play again')}</button>
+          <button class="btn btn-secondary" data-action="close-game">${t('Back')}</button>
         </div>
       ` : ''}
     </div>`;
@@ -2290,8 +2290,8 @@ function renderToolWidget() {
     <div class="tool-panel${open ? ' open' : ''}" role="dialog" aria-label="Metronome and tuner" aria-hidden="${open ? 'false' : 'true'}">
       <div class="tool-panel-head">
         <div class="tool-tabs">
-          <button class="tool-tab${tab === 'metronome' ? ' active' : ''}" data-action="tools-tab" data-tab="metronome">Metronome</button>
-          <button class="tool-tab${tab === 'tuner' ? ' active' : ''}" data-action="tools-tab" data-tab="tuner">Tuner</button>
+          <button class="tool-tab${tab === 'metronome' ? ' active' : ''}" data-action="tools-tab" data-tab="metronome">${t('Metronome')}</button>
+          <button class="tool-tab${tab === 'tuner' ? ' active' : ''}" data-action="tools-tab" data-tab="tuner">${t('Tuner')}</button>
         </div>
         <button class="tool-close" data-action="close-tools" aria-label="Close">✕</button>
       </div>
@@ -2318,10 +2318,10 @@ function renderMetronomePanel() {
         <button class="tool-step" data-action="metronome-bpm" data-delta="5" aria-label="Faster">+</button>
       </div>
       <div class="tool-row tool-row-between">
-        <button class="tool-pill${m.countIn ? ' active' : ''}" data-action="metronome-countin" role="switch" aria-checked="${m.countIn ? 'true' : 'false'}">Count-in</button>
+        <button class="tool-pill${m.countIn ? ' active' : ''}" data-action="metronome-countin" role="switch" aria-checked="${m.countIn ? 'true' : 'false'}">${t('Count-in')}</button>
       </div>
       <div class="tool-actions">
-        <button class="btn btn-primary tool-play" data-action="metronome-toggle" id="metronome-toggle">${m.running ? '\u25A0 Stop' : '\u25B6 Start'}</button>
+        <button class="btn btn-primary tool-play" data-action="metronome-toggle" id="metronome-toggle">${m.running ? '\u25A0 ' + t('Stop') : '\u25B6 ' + t('Start')}</button>
       </div>
     </div>`;
 }
@@ -2383,18 +2383,18 @@ function runPlaySequence(inst, lesson, listenOnly) {
       const playCell = document.querySelector('.beat-cell[data-beat="play"]');
       if (playCell) playCell.classList.add('active');
       AudioEngine.playInstrumentNote(lesson.freq, inst.fingeringType, 1.2);
-      status.textContent = 'Listen...';
+      status.textContent = t('Listen...');
     }, 4 * beatMs);
 
     setTimeout(() => {
       clearActive();
-      status.textContent = 'Now it\'s your turn. Ready?';
+      status.textContent = t('Now it\'s your turn. Ready?');
       btn.disabled = false;
-      btn.textContent = '▶ Yes, let\'s go!';
+      btn.textContent = t('▶ Yes, let\'s go!');
     }, 4 * beatMs + 1600);
   } else {
     // ── Your turn phase: user plays along ────────────────────────────
-    status.textContent = 'Get ready...';
+    status.textContent = t('Get ready...');
     [1, 2, 3, 4].forEach((n, i) => {
       setTimeout(() => {
         clearActive();
@@ -2409,14 +2409,14 @@ function runPlaySequence(inst, lesson, listenOnly) {
       clearActive();
       const playCell = document.querySelector('.beat-cell[data-beat="play"]');
       if (playCell) playCell.classList.add('active');
-      status.textContent = 'Go!';
+      status.textContent = t('Go!');
     }, 4 * beatMs);
 
     setTimeout(() => {
       clearActive();
-      status.textContent = 'Great! Tap Start to try again, or confirm below.';
+      status.textContent = t('Great! Tap Start to try again, or confirm below.');
       btn.disabled = false;
-      btn.textContent = '▶ Replay count-in';
+      btn.textContent = t('▶ Replay count-in');
       APP.play.hasPlayed = true;
       const confirmBtn = document.querySelector('[data-action="play-confirm"]');
       if (confirmBtn) confirmBtn.disabled = false;
@@ -2720,7 +2720,7 @@ function handleAction(action, el) {
 
     case 'copy-report': {
       const text = formatReportText(buildPracticeReport(getStudentName()));
-      copyText(text).then(ok => showToast(ok ? 'Report copied to clipboard.' : 'Copy failed \u2014 try Print instead.'));
+      copyText(text).then(ok => showToast(ok ? t('Report copied to clipboard.') : t('Copy failed \u2014 try Print instead.')));
       break;
     }
 
@@ -2786,7 +2786,7 @@ function handleAction(action, el) {
       if (!item) return;
       if (item.type === 'sprint') {
         if (typeof startSprint === 'function') startSprint(item.mode);
-        else showToast('Practice drills are coming soon.');
+        else showToast(t('Practice drills are coming soon.'));
         break;
       }
       const idx = CURRICULUM[APP.instrumentId].lessons
@@ -2820,7 +2820,7 @@ function handleAction(action, el) {
     }
 
     case 'locked-node':
-      showToast('Finish the previous note first.');
+      showToast(t('Finish the previous note first.'));
       break;
 
     case 'song-next': {
@@ -3076,7 +3076,7 @@ function handleAction(action, el) {
     case 'clear-analytics':
       if (!confirm('Clear all analytics data?')) return;
       localStorage.removeItem(ANALYTICS_KEY);
-      showToast('Analytics cleared.');
+      showToast(t('Analytics cleared.'));
       APP.screen = 'select';
       render();
       break;
@@ -3087,7 +3087,7 @@ function handleAction(action, el) {
         const newName = input.value.trim();
         if (newName) {
           setStudentName(newName);
-          showToast('Name saved!');
+          showToast(t('Name saved!'));
         }
       }
       break;
@@ -3097,7 +3097,7 @@ function handleAction(action, el) {
       if (!confirm('Are you sure? This will erase all progress for all instruments.')) return;
       localStorage.removeItem(PROGRESS_KEY);
       APP.progress = {};
-      showToast('Progress reset.');
+      showToast(t('Progress reset.'));
       APP.screen = 'select';
       render();
       break;
@@ -3266,7 +3266,7 @@ function startRecording() {
     mediaRecorder.start();
     APP.recorder = { mediaRecorder, stream };
     render();
-  }).catch(() => showToast('Microphone unavailable.'));
+  }).catch(() => showToast(t('Microphone unavailable.')));
 }
 
 function stopRecording() {
@@ -3277,7 +3277,7 @@ function stopRecording() {
 function playRecording() {
   if (!APP.recordingUrl) return;
   const audio = new Audio(APP.recordingUrl);
-  audio.play().catch(() => showToast('Could not play the recording.'));
+  audio.play().catch(() => showToast(t('Could not play the recording.')));
 }
 
 function cleanupRecording() {
@@ -3359,9 +3359,9 @@ function stopTuner() {
   t.running = false; t.frame = null; t.stream = null; t.ctx = null;
 }
 function startTuner() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showToast('Microphone not available for tuning.'); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showToast(t('Microphone not available for tuning.')); return; }
   const Ctx = window.AudioContext || window.webkitAudioContext;
-  if (!Ctx) { showToast('Audio analysis not supported here.'); return; }
+  if (!Ctx) { showToast(t('Audio analysis not supported here.')); return; }
   stopTuner();
   APP.tuner = { running: true, freq: -1, ctx: null, stream: null, frame: null };
   const t = APP.tuner;
@@ -3384,7 +3384,7 @@ function startTuner() {
     loop();
   }).catch(() => {
     if (APP.tuner) APP.tuner.running = false;
-    showToast('Could not access the microphone.');
+    showToast(t('Could not access the microphone.'));
     render();
   });
 }
@@ -3399,7 +3399,7 @@ function updateTunerReadout() {
   }
   if (centsEl) {
     const detected = t.freq > 0 ? freqToNoteInfo(t.freq, getTunerNoteLessons()) : null;
-    centsEl.textContent = detected ? (detected.cents > 0 ? '+' + Math.round(detected.cents) + ' cents' : Math.round(detected.cents) + ' cents') : (t.running ? 'Listening…' : 'Press Tune');
+    centsEl.textContent = detected ? (detected.cents > 0 ? '+' + Math.round(detected.cents) + ' cents' : Math.round(detected.cents) + ' cents') : (t.running ? t('Listening…') : t('Press Tune'));
   }
 }
 function t_noteName(n) {
