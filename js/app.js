@@ -175,7 +175,7 @@ function showNamePrompt() {
   overlay.className = 'name-overlay';
   overlay.innerHTML = `
     <div class="name-modal">
-      <div style="display:flex;justify-content:flex-end;width:100%"><button class="theme-toggle" data-action="name-toggle-language" title="Language">${getLang() === 'pt' ? 'PT' : 'EN'}</button></div>
+      <div style="display:flex;justify-content:flex-end;width:100%"><button class="theme-toggle" data-action="name-toggle-language" title="Language">${getLang() === 'pt' ? 'PT' : getLang() === 'fr' ? 'FR' : 'EN'}</button></div>
       <div class="name-modal-icon">🎵</div>
       <div class="name-modal-title">${t('Welcome to Preludio Recorder!')}</div>
       <div class="name-modal-sub">${t("What's your name?")}</div>
@@ -199,7 +199,9 @@ function showNamePrompt() {
   submit.addEventListener('click', submitName);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') submitName(); });
   overlay.querySelector('[data-action="name-toggle-language"]').addEventListener('click', () => {
-    setLang(getLang() === 'pt' ? 'en' : 'pt');
+    const cur = getLang();
+    const next = cur === 'en' ? 'pt' : cur === 'pt' ? 'fr' : 'en';
+    setLang(next);
     document.body.querySelector('.name-overlay')?.remove();
     showNamePrompt();
   });
@@ -681,6 +683,72 @@ function showToast(msg) {
   t.classList.add('show');
   clearTimeout(showToast._timer);
   showToast._timer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function showTranslationEditor() {
+  const lang = getLang();
+  if (lang === 'en') {
+    showToast(t('Switch to PT or FR first.'));
+    return;
+  }
+  const overrides = getUserOverrides(lang);
+  const overlay = document.createElement('div');
+  overlay.className = 'name-overlay';
+  overlay.innerHTML = `
+    <div class="name-modal" style="max-width:600px;width:90%;max-height:80vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0">${t('Edit translations')} (${lang.toUpperCase()})</h3>
+        <button class="btn-icon" data-action="close-translation-editor" style="background:none;border:none;cursor:pointer;font-size:24px;">✕</button>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">${t('One translation per line: English = Translated. Leave empty to use default.')}</p>
+      <textarea id="translation-editor-textarea" style="width:100%;min-height:300px;font-family:monospace;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);" placeholder="English = Translated"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+        <button class="btn btn-secondary" data-action="clear-translations">${t('Reset')}</button>
+        <button class="btn btn-primary" data-action="save-translations">${t('Save')}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const textarea = overlay.querySelector('#translation-editor-textarea');
+  // Build lines from TRANSLATIONS[lang] + overrides
+  const dict = TRANSLATIONS[lang] || {};
+  const allKeys = Object.keys(dict).sort();
+  const lines = allKeys.map(key => {
+    const val = Object.prototype.hasOwnProperty.call(overrides, key) ? overrides[key] : dict[key];
+    return key + ' = ' + val;
+  });
+  textarea.value = lines.join('\\n');
+
+  overlay.querySelector('[data-action="close-translation-editor"]').addEventListener('click', () => overlay.remove());
+  overlay.querySelector('[data-action="save-translations"]').addEventListener('click', () => {
+    const text = textarea.value;
+    const newOverrides = {};
+    text.split('\\n').forEach(line => {
+      const idx = line.indexOf(' = ');
+      if (idx > 0) {
+        const key = line.substring(0, idx).trim();
+        const val = line.substring(idx + 3).trim();
+        if (key && val && val !== dict[key]) {
+          newOverrides[key] = val;
+        }
+      }
+    });
+    // Save overrides
+    try {
+      localStorage.setItem(OVERRIDE_STORAGE_KEY + '_' + lang, JSON.stringify(newOverrides));
+    } catch (e) {}
+    overlay.remove();
+    showToast(t('Translations saved!'));
+    render();
+  });
+  overlay.querySelector('[data-action="clear-translations"]').addEventListener('click', () => {
+    if (confirm('Clear all custom translations for this language?')) {
+      clearUserOverrides(lang);
+      overlay.remove();
+      showToast(t('Translations reset.'));
+      render();
+    }
+  });
 }
 
 function escapeHtml(str) {
@@ -1205,7 +1273,7 @@ function renderSelectScreen() {
         <div class="select-sub">${sub}</div>
       </div>
       <div class="select-hero-settings">
-        <button class="theme-toggle" data-action="toggle-language" title="Language">${getLang() === 'pt' ? 'PT' : 'EN'}</button>
+        <button class="theme-toggle" data-action="toggle-language" title="Language">${getLang() === 'pt' ? 'PT' : getLang() === 'fr' ? 'FR' : 'EN'}</button>
         <button class="theme-toggle" data-action="toggle-theme" title="Switch to ${getTheme() === 'light' ? 'dark' : 'light'} theme">${getTheme() === 'light' ? '\u{1F319}' : '\u2600\uFE0F'}</button>
         <button class="theme-toggle settings-gear" data-action="open-settings" title="Settings">\u{2699}\u{FE0F}</button>
       </div>
@@ -1238,6 +1306,11 @@ function renderSettingsScreen() {
           <label class="settings-label">${t('Reset progress')}</label>
           <p class="settings-desc">${t('Clear all lesson progress and XP for all instruments. This cannot be undone.')}</p>
           <button class="btn btn-danger" data-action="reset-progress">${t('Reset all progress')}</button>
+        </div>
+        <div class="settings-section">
+          <label class="settings-label">${t('Edit translations')}</label>
+          <p class="settings-desc">${t('Override translated words for the current language.')}</p>
+          <button class="btn btn-secondary" data-action="edit-translations">${t('Edit translations')}</button>
         </div>
       </div>
     </div>`;
@@ -3041,10 +3114,12 @@ function handleAction(action, el) {
       break;
 
     // ── Settings ──────────────────────────────────────────────────────
-    case 'toggle-language':
-      setLang(getLang() === 'pt' ? 'en' : 'pt');
-      render();
+    case 'toggle-language': {
+      const cur = getLang();
+      const next = cur === 'en' ? 'pt' : cur === 'pt' ? 'fr' : 'en';
+      setLang(next);
       break;
+    }
     case 'toggle-theme':
       toggleTheme();
       render();
@@ -3102,6 +3177,11 @@ function handleAction(action, el) {
       showToast(t('Progress reset.'));
       APP.screen = 'select';
       render();
+      break;
+    }
+
+    case 'edit-translations': {
+      showTranslationEditor();
       break;
     }
 
