@@ -1186,7 +1186,7 @@ function renderSelectScreen() {
       ${renderInstrumentGrid()}`;
   } else {
     headline = studentName ? `Ready, ${escapeHtml(studentName)}?` : 'Ready to play?';
-    sub = t(`You're set up on ${savedInst.shortName}. Pick up where you left off.`);
+    sub = `${t("You're set up on")} ${savedInst.shortName}. ${t('Pick up where you left off.')}`;
     instrumentArea = renderFocusCard(savedInst);
   }
 
@@ -1344,14 +1344,14 @@ function buildTutorialSlides(inst) {
   return [
     {
       icon: '\u{1F389}',
-      title: t(`You're set up on ${inst.name}`),
+      title: `${t("You're set up on")} ${inst.name}`,
       body: t('Welcome! This is a one-minute tour of how the app works. You can skip it and replay it any time from your lesson map.'),
       visual: instrumentArt,
     },
     {
       icon: '\u{1F5FA}\uFE0F',
       title: t('Follow your lesson path'),
-      body: t(`Every note and song is a stop on your ${inst.shortName} map. Finish one step to unlock the next — a 🔒 just means the step before it is still waiting.`),
+      body: `${t('Every note and song is a stop on your')} ${inst.shortName} ${t('map. Finish one step to unlock the next — a 🔒 just means the step before it is still waiting.')}`
     },
     {
       icon: '\u{1F440}',

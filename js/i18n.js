@@ -111,7 +111,10 @@ function applyI18nToDOM() {
         const keys = Object.keys(TRANSLATIONS.pt).sort((a, b) => b.length - a.length);
         keys.forEach(key => {
           if (key.length >= 2 && replaced.indexOf(key) !== -1) {
-            replaced = replaced.split(key).join(TRANSLATIONS.pt[key]);
+            // Word-boundary aware replacement to avoid corrupting names
+            const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const re = new RegExp('(?<![\\w])' + escaped + '(?![\\w])', 'g');
+            replaced = replaced.replace(re, TRANSLATIONS.pt[key]);
           }
         });
         if (replaced !== original) {
@@ -132,7 +135,9 @@ function applyI18nToDOM() {
               const keys = Object.keys(TRANSLATIONS.pt).sort((a, b) => b.length - a.length);
               keys.forEach(key => {
                 if (key.length >= 2 && replaced.indexOf(key) !== -1) {
-                  replaced = replaced.split(key).join(TRANSLATIONS.pt[key]);
+                  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                  const re = new RegExp('(?<![\\w])' + escaped + '(?![\\w])', 'g');
+                  replaced = replaced.replace(re, TRANSLATIONS.pt[key]);
                 }
               });
               if (replaced !== val) el.setAttribute(attr, replaced);
@@ -390,6 +395,8 @@ TRANSLATIONS.pt = {
   "Ready to play?": "Pronto para tocar?",
   "You're set up on": "Você está configurado em",
   "Pick up where you left off.": "Continue de onde parou.",
+  "Every note and song is a stop on your": "Cada nota e canção é uma parada no seu",
+  "map. Finish one step to unlock the next — a 🔒 just means the step before it is still waiting.": "mapa. Complete um passo para desbloquear o próximo — um 🔒 significa apenas que o passo anterior ainda está esperando.",
   "Continue": "Continuar",
   "Ready for your first lesson": "Pronto para sua primeira aula",
   "notes ·": "notas ·",
