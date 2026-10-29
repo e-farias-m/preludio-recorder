@@ -3401,7 +3401,11 @@ function updateTunerReadout() {
     centsEl.textContent = detected ? (detected.cents > 0 ? '+' + Math.round(detected.cents) + ' cents' : Math.round(detected.cents) + ' cents') : (t.running ? 'Listening…' : 'Press Tune');
   }
 }
-function t_noteName(n) { return n.noteName || n.name || '?'; }
+function t_noteName(n) {
+  const name = n.noteName || n.name || '?';
+  if (typeof t === 'function') return t(name);
+  return name;
+}
 
 // ── INIT ───────────────────────────────────────────────────────────────
 initLang();

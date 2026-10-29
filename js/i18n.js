@@ -17,10 +17,32 @@ var LANG = detectDefaultLang();
 
 var TRANSLATIONS = { en: {}, pt: {} };
 
+var NOTE_TO_SOLFEGE_PT = {
+  'C': 'Dó', 'C#': 'Dó#', 'Cb': 'Sib', 'Db': 'Réb', 'D': 'Ré', 'D#': 'Ré#', 'Eb': 'Mib',
+  'E': 'Mi', 'F': 'Fá', 'F#': 'Fá#', 'Gb': 'Solb', 'G': 'Sol', 'G#': 'Sol#', 'Ab': 'Láb',
+  'A': 'Lá', 'A#': 'Lá#', 'Bb': 'Sib', 'B': 'Si'
+};
+
+function noteToSolfeggio(str) {
+  if (typeof str !== 'string') return str;
+  if (LANG === 'pt') {
+    // Match note names like C, C#, Db, etc.
+    if (/^[A-G][#b]?$/.test(str.trim())) {
+      return NOTE_TO_SOLFEGE_PT[str.trim()] || str;
+    }
+  }
+  return str;
+}
+
 function t(str) {
   if (typeof str !== 'string') return str;
-  if (LANG === 'pt' && TRANSLATIONS.pt && Object.prototype.hasOwnProperty.call(TRANSLATIONS.pt, str)) {
-    return TRANSLATIONS.pt[str];
+  if (LANG === 'pt') {
+    if (TRANSLATIONS.pt && Object.prototype.hasOwnProperty.call(TRANSLATIONS.pt, str)) {
+      return TRANSLATIONS.pt[str];
+    }
+    // Try solfege conversion for note names
+    const sol = noteToSolfeggio(str);
+    if (sol !== str) return sol;
   }
   return str;
 }
