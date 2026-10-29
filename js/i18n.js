@@ -667,8 +667,10 @@ TRANSLATIONS.pt = {
   "Quick Fingers: Score 15 in a Finger gym sprint": "Dedos ágeis: faça 15 pontos em um sprint da Ginástica dos dedos",
   "Planner": "Planejador",
   "Planner: Finish a full practice plan": "Planejador: conclua um plano de prática completo",
+  "Update available — reload to get the latest version.": "Atualização disponível — recarregue para obter a versão mais recente.",
 };
 
+// French (Canadian French) translations - starter set
 // French (Canadian French) translations - starter set
 TRANSLATIONS.fr = {
   "Language": "Langue",
@@ -793,6 +795,7 @@ TRANSLATIONS.fr = {
   "Ready,": "Prêt,",
   "You're set up on": "Vous êtes configuré sur",
   "Pick up where you left off.": "Continuez où vous vous êtes arrêté.",
+  "Update available — reload to get the latest version.": "Mise à jour disponible — rechargez pour obtenir la dernière version.",
 };
 
 
