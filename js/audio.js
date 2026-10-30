@@ -210,7 +210,10 @@ const AudioEngine = (() => {
 
   // ── PUBLIC ──────────────────────────────────────────────────────────────
   function playInstrumentNote(freq, fingeringType, duration = 1.1) {
-    getCtx();
+    const c = getCtx();
+    if (c.state === 'suspended' || c.state === 'interrupted') {
+      try { c.resume(); } catch (e) {}
+    }
     playRecorder(freq, duration);
   }
 
