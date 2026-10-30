@@ -4,30 +4,50 @@
 
 const AudioEngine = (() => {
   let ctx = null;
+  let silentSource = null;
+
+  // iOS 17+: move Web Audio to the media playback channel so the hardware
+  // silent switch does not mute it. Must be set synchronously inside a user
+  // gesture.
+  function setAudioSession() {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.audioSession && typeof navigator.audioSession.type !== 'undefined') {
+        navigator.audioSession.type = 'playback';
+      }
+    } catch (e) {}
+  }
 
   function getCtx() {
     if (!ctx) {
+      setAudioSession();
       ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (ctx.state === 'suspended' || ctx.state === 'interrupted') {
+      try { ctx.resume(); } catch (e) {}
     }
     return ctx;
   }
 
-  let runningPromise = null;
-
-  function ensureRunning() {
+  // Keep a looping near-silent buffer running while the app is active. This is
+  // the legacy iOS unlock technique (still needed on older Safari) and also
+  // prevents the audio session from dropping between notes. The buffer contains
+  // one non-zero sample so WebKit does not optimise the source away.
+  function startSilentBuffer() {
     const c = getCtx();
-    if (c.state === 'running') return Promise.resolve(c);
-    if (!runningPromise) {
-      try {
-        runningPromise = c.resume()
-          .then(() => c)
-          .catch(() => c)
-          .finally(() => { runningPromise = null; });
-      } catch (e) {
-        return Promise.resolve(c);
-      }
-    }
-    return runningPromise;
+    try {
+      if (silentSource) { try { silentSource.stop(); } catch (e) {} silentSource = null; }
+      const frames = Math.floor(c.sampleRate * 0.05);
+      const buffer = c.createBuffer(1, frames, c.sampleRate);
+      const data = buffer.getChannelData(0);
+      // One tiny non-zero sample is enough to keep the node alive on iOS.
+      if (data.length) data[0] = 0.0001;
+      const source = c.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(c.destination);
+      source.start(0);
+      silentSource = source;
+    } catch (e) {}
   }
 
 
@@ -121,78 +141,74 @@ const AudioEngine = (() => {
 
   // ── METRONOME CLICK ──────────────────────────────────────────────────────
   function playClick(accent = false, when = 0) {
-    ensureRunning().then(() => {
-      const c = getCtx();
-      const t0 = c.currentTime + when + 0.01;
-      const osc = c.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = accent ? 1800 : 1200;
-      const g = c.createGain();
-      g.gain.setValueAtTime(accent ? 0.25 : 0.15, t0);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
-      osc.connect(g).connect(c.destination);
-      osc.start(t0);
-      osc.stop(t0 + 0.09);
-    });
+    const c = getCtx();
+    const t0 = c.currentTime + when + 0.01;
+    const osc = c.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = accent ? 1800 : 1200;
+    const g = c.createGain();
+    g.gain.setValueAtTime(accent ? 0.25 : 0.15, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
+    osc.connect(g).connect(c.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.09);
   }
 
   // ── PIANO CHORD ─────────────────────────────────────────────────────────
   // FM synthesis piano — carrier + modulator creates bell/piano-like tone.
   function playPianoChord(freqs, duration = 1.1) {
-    ensureRunning().then(() => {
-      const c = getCtx();
-      const t0 = c.currentTime + 0.003;
-      const out = c.createGain();
-      out.connect(c.destination);
+    const c = getCtx();
+    const t0 = c.currentTime + 0.003;
+    const out = c.createGain();
+    out.connect(c.destination);
 
-      const reverb = c.createConvolver();
-      const reverbLen = c.sampleRate * 0.8;
-      const reverbBuf = c.createBuffer(2, reverbLen, c.sampleRate);
-      for (var ch = 0; ch < 2; ch++) {
-        var chData = reverbBuf.getChannelData(ch);
-        for (var i = 0; i < reverbLen; i++) {
-          chData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (c.sampleRate * 0.15));
-        }
+    const reverb = c.createConvolver();
+    const reverbLen = c.sampleRate * 0.8;
+    const reverbBuf = c.createBuffer(2, reverbLen, c.sampleRate);
+    for (var ch = 0; ch < 2; ch++) {
+      var chData = reverbBuf.getChannelData(ch);
+      for (var i = 0; i < reverbLen; i++) {
+        chData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (c.sampleRate * 0.15));
       }
-      reverb.buffer = reverbBuf;
-      var reverbMix = c.createGain();
-      reverbMix.gain.value = 0.15;
-      out.connect(reverb);
-      reverb.connect(reverbMix).connect(c.destination);
+    }
+    reverb.buffer = reverbBuf;
+    var reverbMix = c.createGain();
+    reverbMix.gain.value = 0.15;
+    out.connect(reverb);
+    reverb.connect(reverbMix).connect(c.destination);
 
-      freqs.forEach(function(freq, fi) {
-        var arpDelay = 0.055 * fi;
-        var t1 = t0 + arpDelay;
-        var noteDur = Math.max(duration - arpDelay, 0.2);
-        var harmonic = freq * 2.76;
+    freqs.forEach(function(freq, fi) {
+      var arpDelay = 0.055 * fi;
+      var t1 = t0 + arpDelay;
+      var noteDur = Math.max(duration - arpDelay, 0.2);
+      var harmonic = freq * 2.76;
 
-        var mod = c.createOscillator();
-        mod.type = 'sine';
-        mod.frequency.value = harmonic;
-        var modGain = c.createGain();
-        modGain.gain.setValueAtTime(800, t1);
-        modGain.gain.exponentialRampToValueAtTime(0.001, t1 + 0.03);
+      var mod = c.createOscillator();
+      mod.type = 'sine';
+      mod.frequency.value = harmonic;
+      var modGain = c.createGain();
+      modGain.gain.setValueAtTime(800, t1);
+      modGain.gain.exponentialRampToValueAtTime(0.001, t1 + 0.03);
 
-        var carr = c.createOscillator();
-        carr.type = 'sine';
-        carr.frequency.value = freq;
-        mod.connect(modGain);
-        modGain.connect(carr.frequency);
+      var carr = c.createOscillator();
+      carr.type = 'sine';
+      carr.frequency.value = freq;
+      mod.connect(modGain);
+      modGain.connect(carr.frequency);
 
-        var g = c.createGain();
-        g.gain.setValueAtTime(0.0001, t1);
-        g.gain.exponentialRampToValueAtTime(0.35 / freqs.length, t1 + 0.002);
-        g.gain.exponentialRampToValueAtTime(0.10 / freqs.length, t1 + 0.12);
-        g.gain.exponentialRampToValueAtTime(0.04 / freqs.length, t1 + 0.5);
-        g.gain.setValueAtTime(0.04 / freqs.length, t1 + noteDur - 0.05);
-        g.gain.exponentialRampToValueAtTime(0.0001, t1 + noteDur + 0.05);
+      var g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t1);
+      g.gain.exponentialRampToValueAtTime(0.35 / freqs.length, t1 + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.10 / freqs.length, t1 + 0.12);
+      g.gain.exponentialRampToValueAtTime(0.04 / freqs.length, t1 + 0.5);
+      g.gain.setValueAtTime(0.04 / freqs.length, t1 + noteDur - 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, t1 + noteDur + 0.05);
 
-        carr.connect(g).connect(out);
-        carr.start(t1);
-        carr.stop(t1 + noteDur + 0.1);
-        mod.start(t1);
-        mod.stop(t1 + noteDur + 0.1);
-      });
+      carr.connect(g).connect(out);
+      carr.start(t1);
+      carr.stop(t1 + noteDur + 0.1);
+      mod.start(t1);
+      mod.stop(t1 + noteDur + 0.1);
     });
   }
 
@@ -216,15 +232,13 @@ const AudioEngine = (() => {
 
   function playBuffer(buffer, playbackRate, when) {
     var c = getCtx();
+    var t0 = when || c.currentTime + 0.01;
     var source = c.createBufferSource();
     source.buffer = buffer;
     source.playbackRate.value = playbackRate;
     source.detune.value = -1200 * Math.log2(playbackRate);
     source.connect(c.destination);
-    ensureRunning().then(() => {
-      var t0 = when || c.currentTime + 0.01;
-      source.start(t0);
-    });
+    source.start(t0);
     return source;
   }
 
@@ -232,33 +246,31 @@ const AudioEngine = (() => {
 
   // ── PUBLIC ──────────────────────────────────────────────────────────────
   function playInstrumentNote(freq, fingeringType, duration = 1.1) {
-    ensureRunning().then(() => {
-      const c = getCtx();
-      if (c.state === 'suspended' || c.state === 'interrupted') {
-        try { c.resume(); } catch (e) {}
-      }
-      playRecorder(freq, duration);
-    });
+    const c = getCtx();
+    playRecorder(freq, duration);
   }
 
   function playInstrumentChord(freqs, fingeringType, duration = 1.1) {
-    ensureRunning().then(() => {
-      freqs.forEach(function(f) { playRecorder(f, duration); });
-    });
+    const c = getCtx();
+    freqs.forEach(function(f) { playRecorder(f, duration); });
   }
 
+  // iOS unlock: move Web Audio to the media-playback channel and keep a
+  // looping silent node alive. The <audio> fallback is needed on older iOS
+  // where navigator.audioSession is not supported; playing any audio element
+  // inside a user gesture promotes the page out of the ringer/silent channel.
   function unlock() {
-    return ensureRunning().then((c) => {
-      try {
-        const buffer = c.createBuffer(1, Math.floor(c.sampleRate * 0.05), c.sampleRate);
-        const source = c.createBufferSource();
-        source.buffer = buffer;
-        source.connect(c.destination);
-        source.start(0);
-        source.stop(c.currentTime + 0.05);
-      } catch (e) {}
-      return c;
-    });
+    setAudioSession();
+    try {
+      if (!window.__preludioAudioUnlock) {
+        const a = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAAAAAA==');
+        a.volume = 0.001;
+        a.play().catch(() => {});
+        window.__preludioAudioUnlock = a;
+      }
+    } catch (e) {}
+    getCtx();
+    startSilentBuffer();
   }
 
   return { playInstrumentNote, playInstrumentChord, playPianoChord, playClick, unlock, fetchAndDecode, playBuffer, getContext };

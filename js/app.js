@@ -175,7 +175,7 @@ function showNamePrompt() {
   overlay.className = 'name-overlay';
   overlay.innerHTML = `
     <div class="name-modal">
-      <div style="display:flex;justify-content:flex-end;width:100%"><button class="theme-toggle" data-action="name-toggle-language" title="Language">${getLang() === 'pt' ? 'PT' : getLang() === 'fr' ? 'FR' : 'EN'}</button></div>
+      <div style="display:flex;justify-content:flex-end;width:100%"><button class="theme-toggle" data-action="name-toggle-language" title="${t('Language')}">${getLang() === 'pt' ? 'PT' : getLang() === 'fr' ? 'FR' : 'EN'}</button></div>
       <div class="name-modal-icon">🎵</div>
       <div class="name-modal-title">${t('Welcome to Preludio Recorder!')}</div>
       <div class="name-modal-sub">${t("What's your name?")}</div>
@@ -844,14 +844,14 @@ function renderBadgeShelf() {
   const items = BADGES.map(b => {
     const got = hasBadge(b.id);
     return `
-      <div class="badge ${got ? 'badge-earned' : 'badge-locked'}" title="${b.name}: ${b.desc}">
+      <div class="badge ${got ? 'badge-earned' : 'badge-locked'}" title="${escapeHtml(t(b.name))}: ${escapeHtml(t(b.desc))}">
         <div class="badge-icon">${got ? b.icon : '\u{1F512}'}</div>
-        <div class="badge-name">${b.name}</div>
+        <div class="badge-name">${escapeHtml(t(b.name))}</div>
       </div>`;
   }).join('');
   return `
     <div class="badges-shelf">
-      <div class="badges-shelf-title">Badges · ${earned}/${BADGES.length}</div>
+      <div class="badges-shelf-title">${t('Badges')} · ${earned}/${BADGES.length}</div>
       <div class="badges-grid">${items}</div>
     </div>`;
 }
@@ -866,7 +866,7 @@ function renderInstrumentGrid() {
       <div class="${cls}" data-action="select-instrument" data-id="${id}" style="color:${inst.accentColor}">
         ${badge}
         <div class="card-icon">${icon}</div>
-        <div class="card-name" style="color: var(--text-primary)">${inst.shortName}</div>
+        <div class="card-name" style="color: var(--text-primary)">${t(inst.shortName)}</div>
       </div>`;
   }).join('');
   return `<div class="instrument-grid">${cards}</div>`;
@@ -987,7 +987,7 @@ function renderPracticeScreen() {
     <div class="screen active practice-screen">
       <div class="app-header">
         <button class="header-back" data-action="close-practice">\u2190</button>
-        <div class="header-title">${t('Practice')} \u00b7 ${inst.shortName}</div>
+        <div class="header-title">${t('Practice')} \u00b7 ${t(inst.shortName)}</div>
       </div>
       <div class="lesson-body">
         <div class="practice-intro">${ready
@@ -1250,11 +1250,11 @@ function renderSelectScreen() {
     headline = t('First notes, first wins.');
     sub = t('Pick a recorder to start your very first lessons — fingerings, notes, and your first sounds.');
     instrumentArea = `
-      ${savedInst ? `<button class="picker-back" data-action="cancel-instrument-pick">\u2190 ${t('Back to')} ${savedInst.shortName}</button>` : ''}
+      ${savedInst ? `<button class="picker-back" data-action="cancel-instrument-pick">\u2190 ${t('Back to')} ${t(savedInst.shortName)}</button>` : ''}
       ${renderInstrumentGrid()}`;
   } else {
-    headline = studentName ? `Ready, ${escapeHtml(studentName)}?` : 'Ready to play?';
-    sub = `${t("You're set up on")} ${savedInst.shortName}. ${t('Pick up where you left off.')}`;
+    headline = studentName ? tFill('Ready, {name}?', { name: escapeHtml(studentName) }) : t('Ready to play?');
+    sub = `${t("You're set up on")} ${t(savedInst.shortName)}. ${t('Pick up where you left off.')}`;
     instrumentArea = renderFocusCard(savedInst);
   }
 
@@ -1273,9 +1273,9 @@ function renderSelectScreen() {
         <div class="select-sub">${sub}</div>
       </div>
       <div class="select-hero-settings">
-        <button class="theme-toggle" data-action="toggle-language" title="Language">${getLang() === 'pt' ? 'PT' : getLang() === 'fr' ? 'FR' : 'EN'}</button>
-        <button class="theme-toggle" data-action="toggle-theme" title="Switch to ${getTheme() === 'light' ? 'dark' : 'light'} theme">${getTheme() === 'light' ? '\u{1F319}' : '\u2600\uFE0F'}</button>
-        <button class="theme-toggle settings-gear" data-action="open-settings" title="Settings">\u{2699}\u{FE0F}</button>
+        <button class="theme-toggle" data-action="toggle-language" title="${t('Language')}">${getLang() === 'pt' ? 'PT' : getLang() === 'fr' ? 'FR' : 'EN'}</button>
+        <button class="theme-toggle" data-action="toggle-theme" title="${t('Switch to ' + (getTheme() === 'light' ? 'dark' : 'light') + ' theme')}">${getTheme() === 'light' ? '\u{1F319}' : '\u2600\uFE0F'}</button>
+        <button class="theme-toggle settings-gear" data-action="open-settings" title="${t('Settings')}">\u{2699}\u{FE0F}</button>
       </div>
       ${motivationHtml}
       ${reportHtml}
@@ -1332,7 +1332,7 @@ function renderAnalyticsScreen() {
   });
 
   const instrumentRows = Object.entries(byInstrument).map(([id, data]) => {
-    const name = CURRICULUM[id]?.shortName || id;
+    const name = t(CURRICULUM[id]?.shortName || id);
     return `<div class="stat-row"><span class="stat-label">${escapeHtml(name)}</span><span class="stat-value">${data.lessons} ${t('lessons')} · ${data.xp} XP</span></div>`;
   }).join('');
 
@@ -1340,7 +1340,7 @@ function renderAnalyticsScreen() {
     const date = new Date(e.timestamp);
     const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const typeLabel = { lesson: t('Lesson'), review: t('Review'), song: t('Song') }[e.type] || e.type;
-    const inst = CURRICULUM[e.instrumentId]?.shortName || e.instrumentId || '';
+    const inst = t(CURRICULUM[e.instrumentId]?.shortName || e.instrumentId || '');
     return `<div class="event-row"><span class="event-type">${typeLabel}</span><span class="event-lesson">${e.lessonId || ''}</span><span class="event-xp">+${e.xpGained || 0} XP</span><span class="event-date">${timeStr}</span></div>`;
   }).join('') || `<div class="stat-row" style="color:var(--text-muted)">${t('No activity yet — complete a lesson!')}</div>`;
 
@@ -1417,14 +1417,14 @@ function buildTutorialSlides(inst) {
   return [
     {
       icon: '\u{1F389}',
-      title: `${t("You're set up on")} ${inst.name}`,
+      title: `${t("You're set up on")} ${t(inst.name)}`,
       body: t('Welcome! This is a one-minute tour of how the app works. You can skip it and replay it any time from your lesson map.'),
       visual: instrumentArt,
     },
     {
       icon: '\u{1F5FA}\uFE0F',
       title: t('Follow your lesson path'),
-      body: `${t('Every note and song is a stop on your')} ${inst.shortName} ${t('map. Finish one step to unlock the next — a 🔒 just means the step before it is still waiting.')}`
+      body: `${t('Every note and song is a stop on your')} ${t(inst.shortName)} ${t('map. Finish one step to unlock the next — a 🔒 just means the step before it is still waiting.')}`
     },
     {
       icon: '\u{1F440}',
@@ -1493,7 +1493,7 @@ function renderLookupScreen() {
       <div class="screen active lookup-screen">
         <div class="app-header">
           <button class="header-back" data-action="close-lookup">\u2190</button>
-          <div class="header-title">${t('Fingering chart')} \u00b7 ${inst.shortName}</div>
+          <div class="header-title">${t('Fingering chart')} \u00b7 ${t(inst.shortName)}</div>
         </div>
         <div class="lesson-body">
           <div class="practice-intro">${t('No notes to show yet.')}</div>
@@ -1525,7 +1525,7 @@ function renderLookupScreen() {
     <div class="screen active lookup-screen">
       <div class="app-header">
         <button class="header-back" data-action="close-lookup">\u2190</button>
-        <div class="header-title">${t('Fingering chart')} \u00b7 ${inst.shortName}</div>
+        <div class="header-title">${t('Fingering chart')} \u00b7 ${t(inst.shortName)}</div>
       </div>
       <div class="lesson-body">
         <div class="lookup-detail">
@@ -1609,7 +1609,7 @@ function renderFirstSoundScreen() {
     <div class="screen active first-sound-screen">
       <div class="app-header">
         <button class="header-back" data-action="close-first-sound">\u2190</button>
-        <div class="header-title">${t('First sound')} \u00b7 ${inst.shortName}</div>
+        <div class="header-title">${t('First sound')} \u00b7 ${t(inst.shortName)}</div>
       </div>
       <div class="lesson-body">
         <div class="first-sound-hero">${content.emoji}</div>
