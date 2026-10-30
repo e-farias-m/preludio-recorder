@@ -165,34 +165,10 @@ function applyI18nToDOM() {
   } catch (e) {}
 }
 
-// MutationObserver for dynamic text (toasts, status lines, widgets)
-let _recObserver = null;
-function recStartObserver() {
-  if (_recObserver || typeof MutationObserver === 'undefined' || !document.body) return;
-  _recObserver = new MutationObserver(records => {
-    if (LANG === 'en') return;
-    const dict = TRANSLATIONS[LANG] || {};
-    for (const r of records) {
-      if (r.type === 'childList') {
-        r.addedNodes.forEach(node => {
-          if (node.nodeType === 3) {
-            const v = node.nodeValue, trimmed = v ? v.trim() : '';
-            if (trimmed && dict[trimmed]) node.nodeValue = v.replace(trimmed, dict[trimmed]);
-          }
-        });
-      } else if (r.type === 'characterData') {
-        const node = r.target;
-        const v = node.nodeValue, trimmed = v ? v.trim() : '';
-        if (trimmed && dict[trimmed]) node.nodeValue = v.replace(trimmed, dict[trimmed]);
-      }
-    }
-  });
-  _recObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
-}
-if (typeof document !== 'undefined') {
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', recStartObserver);
-  else recStartObserver();
-}
+// NOTE: MutationObserver for dynamic text was removed because it caused
+// severe jank/unresponsiveness on iOS Safari when the UI language was
+// Portuguese or French. Dynamic text is now translated at the point it is
+// set (wrapped in t()), and applyI18nToDOM() handles the initial render.
 
 
 function tx(str) {
@@ -671,7 +647,16 @@ TRANSLATIONS.pt = {
   "Planner": "Planejador",
   "Planner: Finish a full practice plan": "Planejador: conclua um plano de prática completo",
   "Update available — reload to get the latest version.": "Atualização disponível — recarregue para obter a versão mais recente.",
-};
+
+  "Preparing…": "Preparando…",
+  "Count-in…": "Contagem…",
+  "Playing…": "Tocando…",
+  "Audio failed to load.": "Não foi possível carregar o áudio.",
+  "Retry": "Tentar de novo",
+  "Song complete!": "Música concluída!",
+  "Play now!": "Toque agora!",
+  "Nice. Tap Start to try again, or confirm below.": "Muito bem. Toque em Iniciar para tentar de novo ou confirme abaixo.",
+  "in tune ✓": "afinado ✓",};
 
 // French (Canadian French) translations - starter set
 // French (Canadian French) translations - starter set
@@ -802,7 +787,18 @@ TRANSLATIONS.fr = {
   "You're set up on": "Vous êtes configuré sur",
   "Pick up where you left off.": "Continuez où vous vous êtes arrêté.",
   "Update available — reload to get the latest version.": "Mise à jour disponible — rechargez pour obtenir la dernière version.",
-};
+
+  "Preparing…": "Préparation…",
+  "Count-in…": "Compte…",
+  "Playing…": "Lecture…",
+  "Audio failed to load.": "Échec du chargement audio.",
+  "Retry": "Réessayer",
+  "Song complete!": "Morceau terminé!",
+  "Play now!": "Jouez maintenant!",
+  "Nice. Tap Start to try again, or confirm below.": "Bien. Appuyez sur Démarrer pour réessayer, ou confirmez ci-dessous.",
+  "▶ Replay count-in": "▶ Rejouer le compte",
+  "Listening…": "Écoute…",
+  "in tune ✓": "juste ✓",};
 
 
 // Additional entries (badges + UI strings)

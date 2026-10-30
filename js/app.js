@@ -2442,7 +2442,7 @@ function runPlaySequence(inst, lesson, listenOnly) {
 
   if (listenOnly) {
     // ── Listen phase: Preludio demonstrates the note ───────────────────
-    status.textContent = 'Listen to how it sounds...';
+    status.textContent = t('Listen to how it sounds...');
     [1, 2, 3, 4].forEach((n, i) => {
       setTimeout(() => {
         clearActive();
