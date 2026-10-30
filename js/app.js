@@ -1602,7 +1602,7 @@ function renderFirstSoundScreen() {
       <span class="first-sound-step-text">${escapeHtml(t(step))}</span>
     </li>`).join('');
   const hearBtn = firstNote
-    ? `<button class="btn btn-secondary btn-wide" data-action="first-sound-hear" style="margin-top:4px">\u{1F50A} Hear a target note</button>`
+    ? `<button class="btn btn-secondary btn-wide" data-action="first-sound-hear" style="margin-top:4px">\u{1F50A} ${t('Hear a target note')}</button>`
     : '';
 
   return `
@@ -1636,7 +1636,7 @@ function renderMapScreen() {
   const bestSight = getSprintBest(APP.instrumentId, SPRINT_MODES.SIGHT);
   const bestFinger = getSprintBest(APP.instrumentId, SPRINT_MODES.FINGER);
   const bestLine = practiceReady && (bestSight || bestFinger)
-    ? `<div class="practice-banner-best">Best: ${bestSight} names · ${bestFinger} fingerings</div>`
+    ? `<div class="practice-banner-best">${tFill('Best: {sight} names · {finger} fingerings', { sight: bestSight, finger: bestFinger })}</div>`
     : '';
 
   const nodes = inst.lessons.map((lesson, i) => {

@@ -668,7 +668,8 @@ TRANSLATIONS.pt = {
   "Switch to dark theme": "Mudar para o tema escuro",
   "Switch to light theme": "Mudar para o tema claro",
   "dark": "escuro",
-  "light": "claro",};
+  "light": "claro",
+  "Best: {sight} names · {finger} fingerings": "Melhor: {sight} nomes · {finger} digitações",};
 
 // French (Canadian French) translations - starter set
 // French (Canadian French) translations - starter set
@@ -846,7 +847,8 @@ TRANSLATIONS.fr = {
   "Practice for 30 minutes in total": "Pratiquez 30 minutes au total",
   "Earn 500 XP": "Gagnez 500 XP",
   "Score 15 in a Finger gym sprint": "Obtenez 15 points dans un sprint gymnastique des doigts",
-  "Finish a full practice plan": "Terminez un plan de pratique complet",};
+  "Finish a full practice plan": "Terminez un plan de pratique complet",
+  "Best: {sight} names · {finger} fingerings": "Meilleur: {sight} noms · {finger} doigtés",};
 
 
 // Additional entries (badges + UI strings)

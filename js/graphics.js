@@ -88,19 +88,48 @@ const Graphics = (() => {
   function melodySVG({ notes = [], highlightIndex = -1, clef = 'treble', accentColor = 'var(--accent-warm)', width = 320, perSystem = 6, beatsPerBar = 4 }) {
     if (!notes.length) return '';
     const VB_W = 360;
-    const SYSTEM_H = 96;
-    const TOP_LINE_Y = 16;
-    const leftX = 96;          // first note sits past the clef + time signature
-    const lineStartX = 16;
+    const SYSTEM_H = 140;
+    const TOP_LINE_Y = 32;
+    const leftX = 120;         // first note sits past the enlarged clef + time signature
+    const lineStartX = 24;
     const rightX = VB_W - 14;
+
+    // Durations are needed for measure-aware system splitting and bar lines.
+    const durs = notes.map(n => (typeof n.duration === 'number' && n.duration > 0 ? n.duration : 1));
+
+    // Split into full measures per system. A system never starts or ends in the
+    // middle of a measure, so bar lines always land inside a single line.
     const systems = [];
-    for (let i = 0; i < notes.length; i += perSystem) systems.push(notes.slice(i, i + perSystem));
+    const barStarts = [0];
+    let barBeats = 0;
+    for (let i = 0; i < notes.length; i++) {
+      barBeats += durs[i];
+      if (barBeats >= beatsPerBar) {
+        barStarts.push(i + 1);
+        barBeats = 0;
+      }
+    }
+    if (barStarts[barStarts.length - 1] < notes.length) barStarts.push(notes.length);
+    let current = [];
+    let currentCount = 0;
+    for (let b = 0; b < barStarts.length - 1; b++) {
+      const start = barStarts[b];
+      const end = barStarts[b + 1];
+      const count = end - start;
+      if (currentCount > 0 && currentCount + count > perSystem) {
+        systems.push(current);
+        current = [];
+        currentCount = 0;
+      }
+      for (let i = start; i < end; i++) current.push(notes[i]);
+      currentCount += count;
+    }
+    if (current.length) systems.push(current);
     const VB_H = systems.length * SYSTEM_H + 8;
     const renderH = width * (VB_H / VB_W);
 
     // Cumulative beats consumed through each note, plus the pickup length, so
     // bar lines can be placed on the beats that are true bar boundaries.
-    const durs = notes.map(n => (typeof n.duration === 'number' && n.duration > 0 ? n.duration : 1));
     const cum = [];
     durs.reduce((acc, d) => { const v = acc + d; cum.push(v); return v; }, 0);
     const totalBeats = cum[cum.length - 1];
@@ -121,20 +150,21 @@ const Graphics = (() => {
         svg += `<line x1="${lineStartX}" y1="${y(p)}" x2="${rightX}" y2="${y(p)}" stroke="${INK}" stroke-width="1.3"/>`;
       }
       if (clef === 'treble') {
-        svg += `<text x="${lineStartX - 6}" y="${y(0) + 4}" font-size="60" font-family="Georgia, 'Apple Symbols', serif" fill="${INK}">&#119070;</text>`;
+        svg += `<text x="${lineStartX - 8}" y="${y(0) + 6}" font-size="90" font-family="Georgia, 'Apple Symbols', serif" fill="${INK}">&#119070;</text>`;
       } else {
-        svg += `<text x="${lineStartX - 2}" y="${y(2)}" font-size="44" font-family="Georgia, 'Apple Symbols', serif" fill="${INK}">&#119074;</text>`;
+        svg += `<text x="${lineStartX - 3}" y="${y(2) + 2}" font-size="66" font-family="Georgia, 'Apple Symbols', serif" fill="${INK}">&#119074;</text>`;
       }
       // Time signature: "4" over "4" centred on the middle of the staff.
       if (s === 0) {
-        const sigX = lineStartX + 70;
+        const sigX = lineStartX + 76;
         svg += `<text x="${sigX}" y="${y(4) - 1}" font-size="26" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${beatsPerBar}</text>`;
         svg += `<text x="${sigX}" y="${y(2) + 15}" font-size="26" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">4</text>`;
       }
 
       const spacing = (rightX - leftX) / systemNotes.length;
+      let globalIndex = systems.slice(0, s).reduce((a, sys) => a + sys.length, 0);
       systemNotes.forEach((note, k) => {
-        const g = s * perSystem + k;
+        const g = globalIndex + k;
         const x = leftX + spacing * (k + 0.5);
         const noteY = y(note.pos);
         const lit = g === highlightIndex;
@@ -170,10 +200,8 @@ const Graphics = (() => {
         }
       });
 
-      // Closing bar line at the end of the tune.
-      if (s === systems.length - 1) {
-        svg += `<line x1="${rightX}" y1="${y(8)}" x2="${rightX}" y2="${y(0)}" stroke="${INK}" stroke-width="1.3"/>`;
-      }
+      // Bar line at the end of every system.
+      svg += `<line x1="${rightX}" y1="${y(8)}" x2="${rightX}" y2="${y(0)}" stroke="${INK}" stroke-width="1.3"/>`;
     });
 
     svg += `</svg>`;
