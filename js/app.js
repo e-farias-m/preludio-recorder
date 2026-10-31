@@ -467,7 +467,7 @@ function generatePlan(instrumentId, now = Date.now()) {
       id: 'note:' + l.id,
       type: 'note',
       targetId: l.id,
-      reason: w >= 0.55 ? 'Shaky — needs review' : 'Keep it fresh',
+      reason: w >= 0.55 ? t('Shaky — needs review') : t('Keep it fresh'),
     });
   });
 
@@ -475,7 +475,7 @@ function generatePlan(instrumentId, now = Date.now()) {
     const sight = getSprintBest(instrumentId, SPRINT_MODES.SIGHT);
     const finger = getSprintBest(instrumentId, SPRINT_MODES.FINGER);
     const mode = finger <= sight ? SPRINT_MODES.FINGER : SPRINT_MODES.SIGHT;
-    items.push({ id: 'sprint:' + mode, type: 'sprint', mode, reason: 'Build speed' });
+    items.push({ id: 'sprint:' + mode, type: 'sprint', mode, reason: t('Build speed') });
   }
 
   const inst = getInstrument(instrumentId);
@@ -581,7 +581,7 @@ function getMasteryColor(level) {
 }
 
 function getMasteryLabel(level) {
-  return { new: 'New', learning: 'Learning', practiced: 'Practiced', mastered: 'Mastered' }[level] || 'New';
+  return t({ new: 'New', learning: 'Learning', practiced: 'Practiced', mastered: 'Mastered' }[level] || 'New');
 }
 
 // ── PROGRESS PERSISTENCE ───────────────────────────────────────────────────
@@ -768,9 +768,9 @@ function shuffle(arr) {
 
 // ── RENDER: SELECT SCREEN ──────────────────────────────────────────────────
 function renderTunerPanel() {
-  const t = APP.tuner;
-  const running = !!(t && t.running);
-  const freq = t && t.freq > 0 ? t.freq : 0;
+  const tuner = APP.tuner;
+  const running = !!(tuner && tuner.running);
+  const freq = tuner && tuner.freq > 0 ? tuner.freq : 0;
   const detected = freq > 0 ? freqToNoteInfo(freq, getTunerNoteLessons()) : null;
   const noteName = detected ? t_noteName(detected.note) : '—';
   const cents = detected ? (detected.cents > 0 ? '+' + Math.round(detected.cents) : Math.round(detected.cents)) + ' cents' : (running ? t('Listening…') : t('Press Tune'));
@@ -820,7 +820,7 @@ function renderStudentCard(name) {
   const pct = xp % 100;
   const streakHtml = streak > 0
     ? `<span class="student-stat student-stat-streak">\u{1F525} ${streak}-day streak</span>`
-    : `<span class="student-stat">Practice today to start a streak!</span>`;
+    : `<span class="student-stat">${t('Practice today to start a streak!')}</span>`;
   return `
     <div class="student-card">
       <div class="student-avatar">${avatar}</div>
@@ -861,7 +861,7 @@ function renderInstrumentGrid() {
     const inst = CURRICULUM[id];
     const icon = Graphics.instrumentIconSVG(id, 56);
     const cls = inst.available ? 'instrument-card' : 'instrument-card coming-soon';
-    const badge = inst.available ? '' : `<div class="card-badge">Soon</div>`;
+    const badge = inst.available ? '' : `<div class="card-badge">${t('Soon')}</div>`;
     return `
       <div class="${cls}" data-action="select-instrument" data-id="${id}" style="color:${inst.accentColor}">
         ${badge}
@@ -1146,20 +1146,20 @@ function buildPracticeReport(name, now = new Date()) {
 // Plain-text version for the clipboard / email.
 function formatReportText(report) {
   const lines = [];
-  lines.push(`Practice report \u2014 ${report.student}`);
+  lines.push(tFill('Practice report \u2014 {student}', { student: report.student }));
   lines.push(report.date);
   lines.push('');
-  lines.push(`Level ${report.level} \u00b7 ${report.xp} XP \u00b7 ${report.streak}-day streak \u00b7 ${report.totalMinutes} min practiced`);
-  lines.push(`Badges: ${report.badges.length}/${report.badgeTotal}${report.badges.length ? ' \u2014 ' + report.badges.join(', ') : ''}`);
+  lines.push(tFill('Level {level} \u00b7 {xp} XP \u00b7 {streak}-day streak \u00b7 {minutes} min practiced', { level: report.level, xp: report.xp, streak: report.streak, minutes: report.totalMinutes }));
+  lines.push(tFill('Badges: {earned}/{total}{suffix}', { earned: report.badges.length, total: report.badgeTotal, suffix: report.badges.length ? ' \u2014 ' + report.badges.map(b => t(b)).join(', ') : '' }));
   lines.push('');
   if (!report.instruments.length) {
-    lines.push('No practice recorded yet.');
+    lines.push(t('No practice recorded yet.'));
   } else {
     report.instruments.forEach(r => {
-      lines.push(`${r.name}: ${r.notesLearned}/${r.notesTotal} notes \u00b7 ${r.songsCompleted}/${r.songsTotal} songs \u00b7 ${r.xp} XP`);
-      lines.push(`  Mastery: ${r.mastery.mastered} mastered, ${r.mastery.practiced} practiced, ${r.mastery.learning} learning`);
+      lines.push(tFill('{name}: {notesLearned}/{notesTotal} notes \u00b7 {songsCompleted}/{songsTotal} songs \u00b7 {xp} XP', { name: r.name, notesLearned: r.notesLearned, notesTotal: r.notesTotal, songsCompleted: r.songsCompleted, songsTotal: r.songsTotal, xp: r.xp }));
+      lines.push(tFill('  Mastery: {mastered} mastered, {practiced} practiced, {learning} learning', { mastered: r.mastery.mastered, practiced: r.mastery.practiced, learning: r.mastery.learning }));
       if (r.weak.length) {
-        lines.push(`  Focus: ${r.weak.map(w => w.name + ' (' + w.accuracy + '%)').join(', ')}`);
+        lines.push(tFill('  Focus: {notes}', { notes: r.weak.map(w => w.name + ' (' + w.accuracy + '%)').join(', ') }));
       }
     });
   }
@@ -1170,10 +1170,10 @@ function renderReportScreen() {
   const report = buildPracticeReport(getStudentName());
   const statChips = `
     <div class="report-stats">
-      <div class="report-stat"><b>${report.level}</b><span>Level</span></div>
-      <div class="report-stat"><b>${report.xp}</b><span>XP</span></div>
-      <div class="report-stat"><b>${report.streak}</b><span>Day streak</span></div>
-      <div class="report-stat"><b>${report.totalMinutes}</b><span>Minutes</span></div>
+      <div class="report-stat"><b>${report.level}</b><span>${t('Level')}</span></div>
+      <div class="report-stat"><b>${report.xp}</b><span>${t('XP')}</span></div>
+      <div class="report-stat"><b>${report.streak}</b><span>${t('Day streak')}</span></div>
+      <div class="report-stat"><b>${report.totalMinutes}</b><span>${t('Minutes')}</span></div>
     </div>`;
 
   const cards = report.instruments.map(r => {
@@ -1461,7 +1461,7 @@ function renderTutorialScreen() {
   return `
     <div class="screen active tutorial-screen">
       <div class="app-header">
-        <button class="header-back" data-action="tutorial-finish" title="Skip the tour">\u2715</button>
+        <button class="header-back" data-action="tutorial-finish" title="${t('Skip the tour')}">\u2715</button>
         <div class="header-title">${t('Quick tour')}</div>
       </div>
       <div class="tutorial-body">
@@ -1535,7 +1535,7 @@ function renderLookupScreen() {
               ${bigFingering}
             </div>
             <div class="lookup-diagram">
-              <div class="lookup-diagram-label">On the staff</div>
+              <div class="lookup-diagram-label">${t('On the staff')}</div>
               ${staffSvg}
             </div>
           </div>
@@ -1575,7 +1575,7 @@ function renderPlanCard(instrumentId) {
         </div>
         ${it.done
           ? '<div class="plan-item-tag">Done</div>'
-          : `<button class="btn btn-secondary plan-item-btn" data-action="plan-start" data-item="${it.id}">Start</button>`}
+          : `<button class="btn btn-secondary plan-item-btn" data-action="plan-start" data-item="${it.id}">${t('Start')}</button>`}
       </div>`;
   }).join('');
   const allDone = done === total;
@@ -1675,7 +1675,7 @@ function renderMapScreen() {
 
     const refIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
     const refBtn = unlocked && !isReview && !isSongLesson(lesson)
-      ? `<button class="map-ref-btn" data-action="open-reference" data-index="${i}" title="View reference">${refIcon}</button>`
+      ? `<button class="map-ref-btn" data-action="open-reference" data-index="${i}" title="${t('View reference')}">${refIcon}</button>`
       : '';
 
     return `
@@ -1772,7 +1772,7 @@ function renderPresentPhase(inst, lesson) {
   const fingeringSvg = Graphics.fingeringSVG(inst.fingeringType, lesson.fingeringState, inst.accentColor, 84);
   const staffSvg = Graphics.staffSVG({ pos: lesson.staffStep, accidental: lesson.accidental, clef: inst.clef, accentColor: inst.accentColor, width: 96 });
   const transposeNote = inst.isTransposing && lesson.concertNote
-    ? `<div class="note-description">Sounds as concert ${lesson.concertNote} (${ inst.transposeSemitones === -9 ? 'E\u266d' : inst.transposeSemitones === -7 ? 'F' : 'B\u266d' } instrument).</div>` : '';
+    ? `<div class="note-description">${tFill('Sounds as concert {note} ({key} instrument).', { note: lesson.concertNote, key: inst.transposeSemitones === -9 ? 'E\u266d' : inst.transposeSemitones === -7 ? 'F' : 'B\u266d' })}</div>` : '';
 
   const mastery = getNoteMastery(APP.instrumentId, lesson.id);
   const masteryLevel = getMasteryLevel(mastery);
@@ -1802,7 +1802,7 @@ function renderPresentPhase(inst, lesson) {
       <div class="gap-md"></div>
       <div class="note-prompt">${escapeHtml(t(lesson.prompt))}</div>
       <div class="gap-lg"></div>
-      <button class="btn-hear" data-action="hear-note"><span class="hear-icon">🔊</span> Hear it</button>
+      <button class="btn-hear" data-action="hear-note"><span class="hear-icon">🔊</span> ${t('Hear it')}</button>
     </div>
     <div class="action-bar">
       <button class="btn btn-primary btn-wide" data-action="goto-quiz">Continue</button>
@@ -1817,9 +1817,9 @@ function songSpeedLabelText(speed) {
 function renderSongSpeedControl(disabled) {
   return `
     <div class="song-speed-control">
-      <button class="btn-speed" data-action="song-speed-down" aria-label="Slower" ${disabled || APP.songSpeed <= SPEED_MIN ? 'disabled' : ''}>\u2212</button>
+      <button class="btn-speed" data-action="song-speed-down" aria-label="${t('Slower')}" ${disabled || APP.songSpeed <= SPEED_MIN ? 'disabled' : ''}>\u2212</button>
       <span class="song-speed-label">${songSpeedLabelText(APP.songSpeed)}</span>
-      <button class="btn-speed" data-action="song-speed-up" aria-label="Faster" ${disabled || APP.songSpeed >= SPEED_MAX ? 'disabled' : ''}>+</button>
+      <button class="btn-speed" data-action="song-speed-up" aria-label="${t('Faster')}" ${disabled || APP.songSpeed >= SPEED_MAX ? 'disabled' : ''}>+</button>
     </div>`;
 }
 // Update only the label text in place (used while accompaniment is playing, so
@@ -1963,11 +1963,11 @@ function buildNoteQuizQueue(inst, lesson) {
 
 function getQuizQuestionText(quizType) {
   switch (quizType) {
-    case QUIZ_TYPES.FINGERING_TO_NOTE:  return 'Which note does this fingering play?';
-    case QUIZ_TYPES.NOTE_TO_FINGERING:  return 'Which fingering plays this note?';
-    case QUIZ_TYPES.STAFF_TO_NOTE:      return 'What note is on the staff?';
-    case QUIZ_TYPES.NOTE_TO_STAFF:      return 'Which staff position matches this note?';
-    default:                            return 'Which one is correct?';
+    case QUIZ_TYPES.FINGERING_TO_NOTE:  return t('Which note does this fingering play?');
+    case QUIZ_TYPES.NOTE_TO_FINGERING:  return t('Which fingering plays this note?');
+    case QUIZ_TYPES.STAFF_TO_NOTE:      return t('What note is on the staff?');
+    case QUIZ_TYPES.NOTE_TO_STAFF:      return t('Which staff position matches this note?');
+    default:                            return t('Which one is correct?');
   }
 }
 
@@ -1987,7 +1987,7 @@ function renderQuizPhase(inst, lesson) {
   // Review / question-queue progress indicator
   let reviewProgress = '';
   if (isReview) {
-    reviewProgress = `<div class="review-progress">Note ${APP.reviewIndex + 1} of ${APP.reviewTotal}</div>`;
+    reviewProgress = `<div class="review-progress">${tFill('Note {current} of {total}', { current: APP.reviewIndex + 1, total: APP.reviewTotal })}</div>`;
   } else if (APP.quizQueue && APP.quizQueue.length > 1) {
     reviewProgress = `<div class="review-progress">Question ${APP.quizIndex + 1} of ${APP.quizQueue.length}</div>`;
   }
@@ -2031,12 +2031,12 @@ function renderQuizPhase(inst, lesson) {
   }).join('');
 
   const feedback = q.answeredCorrectly
-    ? `<div class="quiz-feedback correct visible">Nice work!</div>`
-    : (q.wrongIds.length > 0 ? `<div class="quiz-feedback wrong visible">Not quite — try again.</div>` : `<div class="quiz-feedback"></div>`);
+    ? `<div class="quiz-feedback correct visible">${t('Nice work!')}</div>`
+    : (q.wrongIds.length > 0 ? `<div class="quiz-feedback wrong visible">${t('Not quite — try again.')}</div>` : `<div class="quiz-feedback"></div>`);
 
   const btnLabel = isReview
-    ? (APP.reviewIndex >= APP.reviewTotal - 1 ? 'See summary' : 'Next note')
-    : (APP.quizQueue && APP.quizIndex < APP.quizQueue.length - 1 ? 'Next question' : 'Continue');
+    ? (APP.reviewIndex >= APP.reviewTotal - 1 ? t('See summary') : t('Next note'))
+    : (APP.quizQueue && APP.quizIndex < APP.quizQueue.length - 1 ? t('Next question') : t('Continue'));
 
   return `
     <div class="lesson-body">
@@ -2057,22 +2057,22 @@ function renderRecordPanel(lesson) {
   let controls;
   let status;
   if (recording) {
-    controls = `<button class="btn btn-secondary btn-wide" data-action="record-toggle">⏹ Stop recording</button>`;
+    controls = `<button class="btn btn-secondary btn-wide" data-action="record-toggle">⏹ ${t('Stop recording')}</button>`;
     status = 'Recording — play now, then tap Stop.';
   } else if (APP.recordingUrl) {
     controls = `
       <div class="record-actions">
-        <button class="btn btn-secondary" data-action="play-recording">▶ My take</button>
+        <button class="btn btn-secondary" data-action="play-recording">▶ ${t('My take')}</button>
         <button class="btn-hear" data-action="hear-note"><span class="hear-icon">🔊</span> Model</button>
-        <button class="btn btn-ghost" data-action="record-toggle">Re-record</button>
+        <button class="btn btn-ghost" data-action="record-toggle">${t('Re-record')}</button>
       </div>
-      <button class="btn-ghost" data-action="discard-recording">Delete recording</button>`;
-    status = 'Listen back, then compare with the model.';
+      <button class="btn-ghost" data-action="discard-recording">${t('Delete recording')}</button>`;
+    status = t('Listen back, then compare with the model.');
   } else {
     controls = `
-      <button class="btn btn-secondary btn-wide" data-action="record-toggle">⏺ Record yourself</button>
-      <button class="btn-hear" data-action="hear-note"><span class="hear-icon">🔊</span> Hear the model</button>`;
-    status = 'Record yourself and compare with the model.';
+      <button class="btn btn-secondary btn-wide" data-action="record-toggle">⏺ ${t('Record yourself')}</button>
+      <button class="btn-hear" data-action="hear-note"><span class="hear-icon">🔊</span> ${t('Hear the model')}</button>`;
+    status = t('Record yourself and compare with the model.');
   }
   return `
     <div class="record-panel">
@@ -2091,14 +2091,14 @@ function renderPlayPhase(inst, lesson) {
 
   return `
     <div class="lesson-body">
-      <div class="lesson-instruction">Play it on your instrument</div>
+      <div class="lesson-instruction">${t('Play it on your instrument')}</div>
       <div class="play-layout">
         <div class="play-diagram-large">
           ${fingeringSvg}
           <span class="play-note-label">${escapeHtml(t(lesson.noteName))}</span>
         </div>
         <div class="beat-grid">${cells}${playCell}</div>
-        <div class="play-status" id="play-status">Tap Start, then play along on the count.</div>
+        <div class="play-status" id="play-status">${t('Tap Start, then play along on the count.')}</div>
         <button class="btn btn-secondary" data-action="play-start" id="play-start-btn">▶ Start count-in</button>
         ${renderRecordPanel(lesson)}
       </div>
@@ -2111,7 +2111,7 @@ function renderPlayPhase(inst, lesson) {
       </div>
     </div>
     <div class="action-bar">
-      <button class="btn btn-success btn-wide" data-action="play-confirm" ${APP.play.hasPlayed ? '' : 'disabled'}>I played it!</button>
+      <button class="btn btn-success btn-wide" data-action="play-confirm" ${APP.play.hasPlayed ? '' : 'disabled'}>${t('I played it!')}</button>
     </div>`;
 }
 
@@ -2139,7 +2139,7 @@ function renderCompletePhase(inst, lesson) {
       <div class="complete-layout">
         <div class="complete-stars">${starsHtml}</div>
         <div class="complete-xp">+${xp} XP</div>
-        <div class="complete-title">Review complete!</div>
+        <div class="complete-title">${t('Review complete!')}</div>
         <div class="complete-sub">${APP.reviewCorrect} of ${APP.reviewTotal} on first try</div>
         <div class="review-notes-list">${notesHtml}</div>
         <div class="gap-lg"></div>
@@ -2153,19 +2153,19 @@ function renderCompletePhase(inst, lesson) {
   const alreadyDone = !!APP.completedBefore;
 
   const messages = {
-    new: 'You got the basics down!',
-    learning: 'Getting there — keep practicing!',
-    practiced: 'Solid understanding of this note.',
-    mastered: 'You really know this note well!',
+    new: t('You got the basics down!'),
+    learning: t('Getting there — keep practicing!'),
+    practiced: t('Solid understanding of this note.'),
+    mastered: t('You really know this note well!'),
   };
 
   return `
     <div class="complete-layout">
       <div class="complete-stars">${starsHtml}</div>
       <div class="complete-xp">+${xp} XP</div>
-      <div class="complete-title">${alreadyDone ? 'Review complete!' : 'Lesson complete!'}</div>
-      <div class="complete-sub">${messages[masteryLevel]}</div>
-      <div style="margin-top:8px;padding:6px 14px;border-radius:20px;background:${masteryColor}22;color:${masteryColor};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em">${getMasteryLabel(masteryLevel)} — ${mastery} correct</div>
+      <div class="complete-title">${alreadyDone ? t('Review complete!') : t('Lesson complete!')}</div>
+      <div class="complete-sub">${t(messages[masteryLevel])}</div>
+      <div style="margin-top:8px;padding:6px 14px;border-radius:20px;background:${masteryColor}22;color:${masteryColor};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em">${getMasteryLabel(masteryLevel)} — ${mastery} ${t('correct')}</div>
       <div class="gap-lg"></div>
       <button class="btn btn-primary btn-wide" data-action="finish-lesson">Continue</button>
     </div>`;
@@ -2387,9 +2387,9 @@ function renderMetronomePanel() {
     <div class="tool-metro">
       <div class="metro-dots" id="metronome-dots">${dots.join('')}</div>
       <div class="tool-bpm">
-        <button class="tool-step" data-action="metronome-bpm" data-delta="-5" aria-label="Slower">−</button>
+        <button class="tool-step" data-action="metronome-bpm" data-delta="-5" aria-label="${t('Slower')}">−</button>
         <div class="tool-bpm-value"><span id="metronome-bpm">${m.bpm}</span><small>BPM</small></div>
-        <button class="tool-step" data-action="metronome-bpm" data-delta="5" aria-label="Faster">+</button>
+        <button class="tool-step" data-action="metronome-bpm" data-delta="5" aria-label="${t('Faster')}">+</button>
       </div>
       <div class="tool-row tool-row-between">
         <button class="tool-pill${m.countIn ? ' active' : ''}" data-action="metronome-countin" role="switch" aria-checked="${m.countIn ? 'true' : 'false'}">${t('Count-in')}</button>
@@ -3433,12 +3433,12 @@ function getTunerNoteLessons() {
   return inst.lessons.filter(l => !l.type || (l.type !== 'song' && l.type !== 'review'));
 }
 function stopTuner() {
-  const t = APP.tuner;
-  if (!t) return;
-  if (t.frame) cancelAnimationFrame(t.frame);
-  if (t.stream) t.stream.getTracks().forEach(tr => tr.stop());
-  if (t.ctx && t.ctx.close) t.ctx.close().catch(() => {});
-  t.running = false; t.frame = null; t.stream = null; t.ctx = null;
+  const tuner = APP.tuner;
+  if (!tuner) return;
+  if (tuner.frame) cancelAnimationFrame(tuner.frame);
+  if (tuner.stream) tuner.stream.getTracks().forEach(tr => tr.stop());
+  if (tuner.ctx && tuner.ctx.close) tuner.ctx.close().catch(() => {});
+  tuner.running = false; tuner.frame = null; tuner.stream = null; tuner.ctx = null;
 }
 function startTuner() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showToast(t('Microphone not available for tuning.')); return; }
@@ -3446,20 +3446,20 @@ function startTuner() {
   if (!Ctx) { showToast(t('Audio analysis not supported here.')); return; }
   stopTuner();
   APP.tuner = { running: true, freq: -1, ctx: null, stream: null, frame: null };
-  const t = APP.tuner;
+  const tuner = APP.tuner;
   navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
     if (!APP.tuner || !APP.tuner.running) { stream.getTracks().forEach(tr => tr.stop()); return; }
-    t.stream = stream;
-    t.ctx = new Ctx();
-    const source = t.ctx.createMediaStreamSource(stream);
-    const analyser = t.ctx.createAnalyser();
+    tuner.stream = stream;
+    tuner.ctx = new Ctx();
+    const source = tuner.ctx.createMediaStreamSource(stream);
+    const analyser = tuner.ctx.createAnalyser();
     analyser.fftSize = 2048;
     source.connect(analyser);
     const buf = new Float32Array(analyser.fftSize);
     const loop = () => {
       if (!APP.tuner || !APP.tuner.running) return;
       analyser.getFloatTimeDomainData(buf);
-      t.freq = detectPitch(buf, t.ctx.sampleRate);
+      tuner.freq = detectPitch(buf, tuner.ctx.sampleRate);
       updateTunerReadout();
       APP.tuner.frame = requestAnimationFrame(loop);
     };
@@ -3471,17 +3471,17 @@ function startTuner() {
   });
 }
 function updateTunerReadout() {
-  const t = APP.tuner;
-  if (!t) return;
+  const tuner = APP.tuner;
+  if (!tuner) return;
   const noteEl = document.getElementById('tuner-note');
   const centsEl = document.getElementById('tuner-cents');
   if (noteEl) {
-    const detected = t.freq > 0 ? freqToNoteInfo(t.freq, getTunerNoteLessons()) : null;
+    const detected = tuner.freq > 0 ? freqToNoteInfo(tuner.freq, getTunerNoteLessons()) : null;
     noteEl.textContent = detected ? t_noteName(detected.note) : '—';
   }
   if (centsEl) {
-    const detected = t.freq > 0 ? freqToNoteInfo(t.freq, getTunerNoteLessons()) : null;
-    centsEl.textContent = detected ? (detected.cents > 0 ? '+' + Math.round(detected.cents) + ' cents' : Math.round(detected.cents) + ' cents') : (t.running ? t('Listening…') : t('Press Tune'));
+    const detected = tuner.freq > 0 ? freqToNoteInfo(tuner.freq, getTunerNoteLessons()) : null;
+    centsEl.textContent = detected ? (detected.cents > 0 ? '+' + Math.round(detected.cents) + ' cents' : Math.round(detected.cents) + ' cents') : (tuner.running ? t('Listening…') : t('Press Tune'));
   }
 }
 function t_noteName(n) {
@@ -3504,7 +3504,7 @@ render();
 // ── SERVICE WORKER UPDATE NOTIFICATION ──────────────────────────────────────
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (typeof showToast === 'function') showToast('Update available — reload to get the latest version.');
+    if (typeof showToast === 'function') showToast(t('Update available — reload to get the latest version.'));
   });
   navigator.serviceWorker.ready.then(reg => {
     reg.addEventListener('updatefound', () => {
@@ -3512,7 +3512,7 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
       if (newWorker) {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            if (typeof showToast === 'function') showToast('Update available — reload to get the latest version.');
+            if (typeof showToast === 'function') showToast(t('Update available — reload to get the latest version.'));
           }
         });
       }
