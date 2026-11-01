@@ -859,13 +859,14 @@ function renderBadgeShelf() {
 function renderInstrumentGrid() {
   const cards = INSTRUMENT_ORDER.map(id => {
     const inst = CURRICULUM[id];
-    const icon = Graphics.instrumentIconSVG(id, 72);
+    const icon = Graphics.instrumentIconSVG(id, 56);
     const cls = inst.available ? 'instrument-card' : 'instrument-card coming-soon';
     const badge = inst.available ? '' : `<div class="card-badge">${t('Soon')}</div>`;
     return `
       <div class="${cls}" data-action="select-instrument" data-id="${id}" style="color:${inst.accentColor}">
         ${badge}
         <div class="card-icon">${icon}</div>
+        <div class="card-name" style="color: var(--text-primary)">${t(inst.shortName)}</div>
       </div>`;
   }).join('');
   return `<div class="instrument-grid">${cards}</div>`;
@@ -881,7 +882,7 @@ function renderFocusCard(inst) {
   return `
     <div class="focus-instrument">
       <div class="focus-card" data-action="select-instrument" data-id="${inst.id}" style="color:${inst.accentColor}">
-        <div class="focus-icon">${Graphics.instrumentIconSVG(inst.id, 88)}</div>
+        <div class="focus-icon">${Graphics.instrumentIconSVG(inst.id, 64)}</div>
         <div class="focus-info">
           <div class="focus-name">${escapeHtml(t(inst.name))}</div>
           <div class="focus-progress">${progress}</div>
