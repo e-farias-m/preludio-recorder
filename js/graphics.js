@@ -380,7 +380,7 @@ const Graphics = (() => {
     const s = (inner) => `<svg viewBox="0 0 64 64" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
     const jpg = INSTRUMENT_JPGS[id];
     if (jpg) {
-      return `<svg viewBox="0 0 64 64" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><image href="${jpg}" x="0" y="0" width="${size}" height="${size}" /></svg>`;
+      return `<svg viewBox="0 0 64 64" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><image href="data:image/jpeg;base64,${jpg}" x="0" y="0" width="${size}" height="${size}" /></svg>`;
     }
 
 
