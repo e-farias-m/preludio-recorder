@@ -1,12 +1,13 @@
 {
   "name": "Preludio Recorder",
-  "short_name": "Preludio",
+  "short_name": "Preludio Recorder",
   "description": "Learn recorder step by step — first notes, first wins.",
   "start_url": "./",
   "display": "standalone",
   "orientation": "any",
   "theme_color": "#0E0D1C",
   "background_color": "#0E0D1C",
+  "apple-mobile-web-app-name": "Preludio Recorder",
   "icons": [
     {
       "src": "icon-192.png",
