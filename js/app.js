@@ -1262,11 +1262,10 @@ function renderSelectScreen() {
     <div class="screen active select-screen">
       <div class="select-hero">
         <div class="wordmark">
-          <svg class="wordmark-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="10" cy="24" rx="6" ry="4.5" fill="#FF8C42" transform="rotate(-20 10 24)"/>
-            <line x1="15" y1="22" x2="15" y2="5" stroke="#FF8C42" stroke-width="2.4"/>
-            <path d="M15 5 Q24 6 24 14" stroke="#FF8C42" stroke-width="2.4" fill="none"/>
-          </svg>
+<svg class="wordmark-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(1.63 0.58) scale(0.3084)"><g transform="rotate(-32 50 50) translate(100 0) scale(-1 1)">
+<rect x="24" y="43.5" width="68" height="13" rx="6.5" fill="#17325C"/>
+<path d="M7 47.2 L26 43.5 V56.5 L7 52.8 Z" fill="#17325C" stroke="#17325C" stroke-width="3" stroke-linejoin="round"/>
+<rect x="27" y="46" width="6.5" height="5.5" rx="1.2" fill="#fff"/><circle cx="41" cy="50" r="2.6" fill="#fff"/><circle cx="50" cy="50" r="2.6" fill="#fff"/><circle cx="59" cy="50" r="2.6" fill="#fff"/><circle cx="68" cy="50" r="2.6" fill="#fff"/><circle cx="77" cy="50" r="2.6" fill="#fff"/></g></svg>
           <span class="wordmark-text">Preludio <span>Recorder</span></span>
         </div>
         <div class="select-headline">${headline}</div>
