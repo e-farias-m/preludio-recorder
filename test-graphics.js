@@ -72,7 +72,7 @@ for (const id of INSTRUMENT_ORDER) {
   check(isSvg(svg), 'melody staff is valid SVG');
   const heads = (svg.match(/<ellipse/g) || []).length;
   check(heads === notes.length, `melody staff should draw one notehead per note (got ${heads})`);
-  const systems = (svg.match(/<text[^>]*>&#11907[04];<\/text>/g) || []).length;
+  const systems = (svg.match(/class="clef clef-treble"/g) || []).length;
   check(systems >= 2, 'a melody longer than one system wraps onto more staves');
   check(svg.includes('#e0a020'), 'the highlighted note uses the accent colour');
   check(svg.includes('♭'), 'an accidental note prints its accidental');
