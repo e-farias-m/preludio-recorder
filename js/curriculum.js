@@ -31,10 +31,10 @@ const CURRICULUM = {
       {
         id: 'sr-1',
         noteName: 'B',
-        octave: 4,
+        octave: 5,
         staffStep: 4,
         accidental: null,
-        freq: 493.88,
+        freq: 987.77,
         fingeringState: [true, true, false, false, false, false, false, false],
         description: 'Your very first note! Just two fingers.',
         prompt: 'Cover the thumb hole (back) and hole 1. Leave everything else open.'
