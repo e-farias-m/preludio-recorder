@@ -1851,7 +1851,7 @@ function renderSongPresentPhase(inst, lesson) {
     melodyNotes.push({ pos: n.staffStep, accidental: n.accidental, duration });
   });
   const melodySvg = melodyNotes.length
-    ? Graphics.melodySVG({ notes: melodyNotes, highlightIndex, clef: inst.clef, accentColor: inst.accentColor, width: 320 })
+    ? Graphics.melodySVG({ notes: melodyNotes, highlightIndex, clef: inst.clef, accentColor: inst.accentColor, width: 320, timeSig: lesson.timeSig, pickup: lesson.pickup })
     : '';
 
   const playLabel = playback.finished ? '\u21BB ' + t('Replay') : '\u25B6 ' + t('Play whole melody');
