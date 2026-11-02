@@ -729,6 +729,29 @@ const CURRICULUM = {
 };
 
 // Ordered list for the home screen
+// Time signature of every song (and its pickup, in beats, if it has one).
+const SONG_METERS = {
+  'Hot Cross Buns': { timeSig: { num: 4, den: 4 } },
+  'Merrily We Roll Along': { timeSig: { num: 4, den: 4 } },
+  'Lightly Row': { timeSig: { num: 2, den: 4 } },
+  'Amazing Grace': { timeSig: { num: 3, den: 4 } },
+  'Kum Ba Yah': { timeSig: { num: 4, den: 4 } },
+  'Row, Row, Row Your Boat': { timeSig: { num: 3, den: 4 } },
+  'Au Clair de la Lune': { timeSig: { num: 3, den: 4 } },
+  'C Major Scale Waltz': { timeSig: { num: 3, den: 4 } },
+  'Chord Practice': { timeSig: { num: 4, den: 4 } },
+};
+
+for (const inst of Object.values(CURRICULUM)) {
+  for (const lesson of inst.lessons || []) {
+    if (lesson.type !== 'song') continue;
+    const meter = SONG_METERS[lesson.noteName];
+    if (!meter) continue;
+    lesson.timeSig = meter.timeSig;
+    if (meter.pickup) lesson.pickup = meter.pickup;
+  }
+}
+
 const INSTRUMENT_ORDER = [
   'soprano-recorder', 'alto-recorder', 'tenor-recorder', 'bass-recorder'
 ];
