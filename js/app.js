@@ -1904,7 +1904,7 @@ function renderSongPresentPhase(inst, lesson) {
       <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:16px">${t('Note')} ${currentNum} ${t('of')} ${totalNotes}</div>
       ${melodySvg ? `<div class="song-melody-wrap">
         <div class="present-diagram-label">${t('Sheet music')}</div>
-        <div class="song-melody-svg">${melodySvg}</div>
+        <div class="song-melody-svg" id="song-score-container">${melodySvg}</div>
       </div>` : ''}
       <div class="present-layout">
         <div class="present-diagram-wrap">

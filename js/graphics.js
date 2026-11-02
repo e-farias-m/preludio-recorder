@@ -194,7 +194,8 @@ const Graphics = (() => {
   function restSVG(x, y, dur, color) {
     if (dur >= 4) return `<rect x="${x - 6}" y="${y(6)}" width="12" height="4" fill="${color}"/>`;
     if (dur >= 2) return `<rect x="${x - 6}" y="${y(4) - 4}" width="12" height="4" fill="${color}"/>`;
-    return `<path d="M${x + 2} ${y(7)} L${x - 3} ${y(5)} L${x + 3} ${y(3)} L${x - 2} ${y(1)}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/>`;
+    return `<ellipse cx="${x - 1}" cy="${y(6)}" rx="2.8" ry="2.3" fill="${color}" transform="rotate(-20 ${x - 1} ${y(6)})"/>`
+      + `<path d="M${x + 1} ${y(5.2)} L${x - 3} ${y(2.6)} C${x - 2} ${y(1.6)} ${x + 5} ${y(1.2)} ${x + 2} ${y(-0.2)} C${x + 1} ${y(-1)} ${x - 2} ${y(-1)} ${x - 2} ${y(-0.4)}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>`;
   }
 
   function melodySVG({ notes = [], highlightIndex = -1, clef = 'treble', accentColor = 'var(--accent-warm)', width = 320, barsPerSystem = 4, beatsPerBar = 4, timeSig = null, keySig = 0, pickup = 0, gaps = [] }) {
