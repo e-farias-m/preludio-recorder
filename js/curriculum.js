@@ -96,11 +96,14 @@ const CURRICULUM = {
       },
       {
         id: 'sr-song-3', type: 'song',
-        noteName: 'Lightly Row',
+        noteName: 'Kagome Kagome',
         prerequisiteIds: ['sr-1', 'sr-2', 'sr-3', 'sr-4'],
-        description: 'A traditional German folk song using B, A, G, and E.',
-        prompt: 'This song adds E to your note set. Step through gently!',
-        noteIds: ['sr-3', 'sr-3', 'sr-2', 'sr-1', 'sr-2', 'sr-3', 'sr-2', 'sr-1', 'sr-2', 'sr-3', 'sr-4', 'sr-3', 'sr-2', 'sr-1', 'sr-1', 'sr-2', 'sr-3', 'sr-2', 'sr-1', 'sr-2', 'sr-3', 'sr-4'],
+        description: 'A traditional Japanese folk song using B, A, G, and E.',
+        prompt: 'This song adds E to your note set. Watch for the rests between phrases.',
+        keySig: 0, timeSig: { num: 4, den: 4 },
+        noteIds: ['sr-2', 'sr-2', 'sr-1', 'sr-2', 'sr-2', 'sr-2', 'sr-2', 'sr-2', 'sr-2', 'sr-2', 'sr-3', 'sr-3', 'sr-2', 'sr-2', 'sr-3', 'sr-4', 'sr-2', 'sr-3', 'sr-2', 'sr-3', 'sr-2', 'sr-2', 'sr-3', 'sr-4', 'sr-2', 'sr-2', 'sr-2', 'sr-1', 'sr-2', 'sr-2', 'sr-2', 'sr-2', 'sr-3', 'sr-3', 'sr-2', 'sr-3', 'sr-3', 'sr-2', 'sr-2', 'sr-4', 'sr-2', 'sr-2', 'sr-2', 'sr-2', 'sr-2', 'sr-1', 'sr-2', 'sr-3', 'sr-2'],
+        durations: [2, 1, 1, 1, 1, 1, 1, 0.5, 0.5, 1, 0.5, 0.5, 1, 0.5, 0.5, 1, 1, 1, 1, 1, 1, 0.5, 0.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.5, 0.5, 1, 0.5, 0.5, 1, 1, 1, 0.5, 0.5, 0.5, 0.5, 1, 1, 1.5, 0.5, 1],
+        gaps: [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
       },
       {
         id: 'sr-5',
@@ -733,7 +736,7 @@ const CURRICULUM = {
 const SONG_METERS = {
   'Hot Cross Buns': { timeSig: { num: 4, den: 4 } },
   'Merrily We Roll Along': { timeSig: { num: 4, den: 4 } },
-  'Lightly Row': { timeSig: { num: 2, den: 4 } },
+  'Kagome Kagome': { timeSig: { num: 4, den: 4 } },
   'Amazing Grace': { timeSig: { num: 3, den: 4 } },
   'Kum Ba Yah': { timeSig: { num: 4, den: 4 } },
   'Row, Row, Row Your Boat': { timeSig: { num: 3, den: 4 } },

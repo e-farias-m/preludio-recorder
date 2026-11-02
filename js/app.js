@@ -1892,7 +1892,7 @@ function renderSongPresentPhase(inst, lesson) {
     melodyNotes.push({ pos: n.staffStep, accidental: n.accidental, duration });
   });
   const melodySvg = melodyNotes.length
-    ? Graphics.melodySVG({ notes: melodyNotes, highlightIndex, clef: inst.clef, accentColor: inst.accentColor, width: 320, timeSig: lesson.timeSig, pickup: lesson.pickup, gaps: lesson.gaps || [] })
+    ? Graphics.melodySVG({ notes: melodyNotes, highlightIndex, clef: inst.clef, accentColor: inst.accentColor, width: 320, timeSig: lesson.timeSig, keySig: lesson.keySig || 0, pickup: lesson.pickup, gaps: lesson.gaps || [] })
     : '';
 
   const playLabel = playback.finished ? '\u21BB ' + t('Replay') : '\u25B6 ' + t('Play whole melody');
@@ -2576,9 +2576,11 @@ function runSongPlayback(inst, lesson) {
       if (typeof n.dur === 'number') return n.dur;
       return n.dur === 'h' ? 2 : n.dur === 'w' ? 4 : n.dur === '8' ? 0.5 : 1;
     });
+    var noteStarts = [];
     var cumBeats = [0];
     for (var ci = 0; ci < notes.length; ci++) {
-      cumBeats.push(cumBeats[ci] + (gaps[ci] || 0) + beatDurs[ci]);
+      noteStarts.push(cumBeats[ci] + (gaps[ci] || 0));
+      cumBeats.push(noteStarts[ci] + beatDurs[ci]);
     }
 
     function step(i) {
@@ -2633,12 +2635,12 @@ function runSongPlayback(inst, lesson) {
       // Schedule next note against the count-in's captured tempo, so the
       // highlight grid stays locked to the accompaniment for the whole take.
       if (i + 1 < notes.length) {
-        var nextTime = audioStart + cumBeats[i + 1] * spbMs / 1000;
+        var nextTime = audioStart + noteStarts[i + 1] * spbMs / 1000;
         var delay = (nextTime - c.currentTime) * 1000;
         APP.songPlayback.timer = setTimeout(function() { step(i + 1); }, Math.max(0, delay));
       } else {
         // Last note — let it ring for its full duration before ending
-        var lastBeat = (gaps[notes.length - 1] || 0) + beatDurs[notes.length - 1];
+        var lastBeat = beatDurs[notes.length - 1];
         var lastMs = lastBeat * spbMs;
         APP.songPlayback.timer = setTimeout(function() {
           APP.songPlayback.active = false;
@@ -2689,7 +2691,11 @@ function runSongPlayback(inst, lesson) {
     APP.songPlayback.timer = setTimeout(function() {
       if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
       APP._countInOverlay = null;
-      step(0);
+      if (noteStarts[0] > 0) {
+        APP.songPlayback.timer = setTimeout(function() { step(0); }, noteStarts[0] * spbMs);
+      } else {
+        step(0);
+      }
     }, countInMs + 50);
   }
 

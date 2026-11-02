@@ -66,7 +66,10 @@ for (const id of INSTRUMENT_ORDER) {
     const pickup = l.pickup || 0;
     const durs = (l.noteIds || []).map((_, i) => { const d = (l.durations || [])[i]; return typeof d === 'number' ? d : (DUR[d] || 1); });
     let cum = 0, straddles = 0;
-    durs.forEach(d => { const s0 = cum - pickup; cum += d; const e0 = cum - pickup; if (Math.floor(s0 / bpb + 1e-9) !== Math.floor((e0 - 1e-9) / bpb)) straddles++; });
+    const gaps = l.gaps || [];
+    durs.forEach((d, i) => { cum += gaps[i] || 0; const s0 = cum - pickup; cum += d; const e0 = cum - pickup; if (Math.floor(s0 / bpb + 1e-9) !== Math.floor((e0 - 1e-9) / bpb)) straddles++; });
+    const tail = cum + (gaps[durs.length] || 0) - pickup;
+    if (Math.abs(tail / bpb - Math.round(tail / bpb)) >= 1e-9) console.log(`  WARN ${l.id} (${l.noteName}): the song does not fill whole bars (${tail} beats)`);
     check(straddles === 0, `${l.id} (${l.noteName}): no note crosses a bar line (${straddles} do)`);
   });
 }

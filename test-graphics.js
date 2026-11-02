@@ -73,7 +73,9 @@ for (const id of INSTRUMENT_ORDER) {
   const heads = (svg.match(/<ellipse/g) || []).length;
   check(heads === notes.length, `melody staff should draw one notehead per note (got ${heads})`);
   const systems = (svg.match(/class="clef clef-treble"/g) || []).length;
-  check(systems >= 2, 'a melody longer than one system wraps onto more staves');
+  const wrapped = Graphics.melodySVG({ notes: notes.concat(notes, notes), clef: 'treble', accentColor: '#e0a020' });
+  const wrappedSystems = (wrapped.match(/class="clef clef-treble"/g) || []).length;
+  check(wrappedSystems >= 2, `a melody longer than one system wraps onto more staves (got ${wrappedSystems})`);
   check(svg.includes('#e0a020'), 'the highlighted note uses the accent colour');
   check(svg.includes('♭'), 'an accidental note prints its accidental');
   check(!svg.includes('undefined') && !svg.includes('NaN'), 'melody staff contains no undefined/NaN');
@@ -105,7 +107,7 @@ for (const id of INSTRUMENT_ORDER) {
     const lines = svg.match(/<line x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)" stroke="var\(--dg-ink\)" stroke-width="1.3"\/>/g) || [];
     return lines.filter(l => {
       const m = l.match(/x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)"/);
-      return m[1] === m[3] && m[2] !== m[4];
+      return m[1] === m[3] && m[2] !== m[4] && m[1] !== '16';
     }).length;
   };
   const q = n => Array.from({ length: n }, () => ({ pos: 2, accidental: null, duration: 1 }));

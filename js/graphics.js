@@ -178,140 +178,172 @@ const Graphics = (() => {
   }
 
   // ── MELODY STRIP (song step-through) ─────────────────────────────────
-  // `notes` is a list of { pos, accidental, duration } where duration is in
-  // beats (1 = quarter, 2 = half, 4 = whole; anything past a whole note is
-  // drawn as a whole). The note value is engraved — halves and wholes get an
-  // open (hollow) notehead, wholes drop the stem — so the written rhythm
-  // matches what the tune actually plays.
+  // `notes` is a list of { pos, accidental, duration }. Duration is in beats:
+  // 4 whole, 2 half, 1 quarter, 0.5 eighth, 1.5 dotted quarter. `gaps[g]` is
+  // the rest, in beats, that comes before note g; `gaps[notes.length]` is a
+  // rest at the end of the tune. `keySig` is the number of sharps (> 0) or
+  // flats (< 0) in the key signature.
   //
-  // The tune is laid out in common time (4/4): bar lines fall every four beats
-  // and a "4/4" signature is drawn after the clef. When the melody's total is
-  // not a whole number of bars, the opening beats are treated as an anacrusis
-  // (pickup), so bar lines straddle no note and the final bar is complete.
-  function melodySVG({ notes = [], highlightIndex = -1, clef = 'treble', accentColor = 'var(--accent-warm)', width = 320, perSystem = 6, beatsPerBar = 4, timeSig = null, pickup = 0, gaps = [] }) {
+  // The tune sits on a grid of bars. Bars are the same width in every system,
+  // a bar line falls on every bar boundary, and a system holds `barsPerSystem`
+  // bars. Notes are spaced by their value, so a quarter takes more room than an
+  // eighth and less than a half.
+  const KEY_SHARP_POS = [8, 5, 9, 6, 3, 7, 4];  // F C G D A E B
+  const KEY_FLAT_POS = [4, 7, 3, 6, 2, 5, 1];   // B E A D G C F
+
+  function restSVG(x, y, dur, color) {
+    if (dur >= 4) return `<rect x="${x - 6}" y="${y(6)}" width="12" height="4" fill="${color}"/>`;
+    if (dur >= 2) return `<rect x="${x - 6}" y="${y(4) - 4}" width="12" height="4" fill="${color}"/>`;
+    return `<path d="M${x + 2} ${y(7)} L${x - 3} ${y(5)} L${x + 3} ${y(3)} L${x - 2} ${y(1)}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/>`;
+  }
+
+  function melodySVG({ notes = [], highlightIndex = -1, clef = 'treble', accentColor = 'var(--accent-warm)', width = 320, barsPerSystem = 4, beatsPerBar = 4, timeSig = null, keySig = 0, pickup = 0, gaps = [] }) {
     if (!notes.length) return '';
     const VB_W = 360;
-    // Each system leaves room for the clef, which overhangs the staff.
-    const SYSTEM_H = 180;
-    const TOP_LINE_Y = 64;
-    const leftX = 120;         // first note sits past the enlarged clef + time signature
-    const lineStartX = 24;
-    const rightX = VB_W - 14;
-
-    // Durations drive the bar lines. Bars start at beat 0 unless the song
-    // declares a pickup (anacrusis) length. A bar line falls on every bar
-    // boundary, and systems are split only between bars.
-    const durs = notes.map(n => (typeof n.duration === 'number' && n.duration > 0 ? n.duration : 1));
+    const SYSTEM_H = 100;
+    const TOP_LINE_Y = 34;
+    const LEFT_X = 16;
+    const RIGHT_X = VB_W - 12;
+    const KEY_X = 56;
+    const PAD = 6;
+    const HEAD_RX = 5.6;
     const bpb = timeSig ? timeSig.num * 4 / timeSig.den : beatsPerBar;
     const sigNum = timeSig ? timeSig.num : beatsPerBar;
     const sigDen = timeSig ? timeSig.den : 4;
+    const keyCount = Math.min(Math.abs(keySig) || 0, 7);
+    const sysStartX = KEY_X + keyCount * 8 + 26;
+    const barW = (RIGHT_X - sysStartX) / barsPerSystem;
     const gapArr = Array.isArray(gaps) ? gaps : [];
-    const starts = [];
-    let beatPos = pickup;
-    for (let g = 0; g < notes.length; g++) {
-      starts.push(beatPos);
-      beatPos += (typeof gapArr[g] === 'number' ? gapArr[g] : 0) + durs[g];
-    }
-    // A note belongs to the bar it starts in, so a bar line never cuts through
-    // a note and every bar gets both of its lines. Rest gaps shift the notes
-    // they precede, so bars stay whole in songs that have rests.
-    const barOf = notes.map((_, g) => Math.floor(starts[g] / bpb + 1e-9));
-    const bars = [];
-    notes.forEach((_, g) => {
-      if (!bars.length || barOf[g] !== barOf[g - 1]) bars.push([]);
-      bars[bars.length - 1].push(g);
+    const positiveGap = g => (typeof gapArr[g] === 'number' && gapArr[g] > 0 ? gapArr[g] : 0);
+    const durOf = n => (typeof n.duration === 'number' && n.duration > 0 ? n.duration : 1);
+
+    const events = [];
+    let beat = pickup;
+    notes.forEach((n, g) => {
+      const gap = positiveGap(g);
+      if (gap) { events.push({ rest: true, dur: gap, start: beat }); beat += gap; }
+      events.push({ rest: false, note: n, index: g, dur: durOf(n), start: beat });
+      beat += durOf(n);
+    });
+    const tail = positiveGap(notes.length);
+    if (tail) { events.push({ rest: true, dur: tail, start: beat }); beat += tail; }
+
+    const nBars = Math.max(1, Math.ceil(beat / bpb - 1e-9));
+    const systemCount = Math.ceil(nBars / barsPerSystem);
+    const VB_H = systemCount * SYSTEM_H + 8;
+    const renderH = width * (VB_H / VB_W);
+    const barEvents = Array.from({ length: nBars }, () => []);
+    events.forEach(e => {
+      const bi = Math.min(nBars - 1, Math.floor(e.start / bpb + 1e-9));
+      barEvents[bi].push(e);
     });
 
-    const systems = [];
-    let current = [];
-    let currentCount = 0;
-    bars.forEach(bar => {
-      if (currentCount > 0 && currentCount + bar.length > perSystem) {
-        systems.push(current);
-        current = [];
-        currentCount = 0;
-      }
-      bar.forEach(g => current.push(notes[g]));
-      currentCount += bar.length;
+    const weight = e => 1 + e.dur;
+    const xOf = new Map();
+    barEvents.forEach((evs, bi) => {
+      const denom = Math.max(evs.reduce((s, e) => s + weight(e), 0), bpb * 2);
+      const barX = sysStartX + (bi % barsPerSystem) * barW;
+      let cum = 0;
+      evs.forEach(e => {
+        xOf.set(e, barX + PAD + ((cum + weight(e) / 2) / denom) * (barW - 2 * PAD));
+        cum += weight(e);
+      });
     });
-    if (current.length) systems.push(current);
-    const VB_H = systems.length * SYSTEM_H + 8;
-    const renderH = width * (VB_H / VB_W);
+
+    // Runs of eighth notes inside one beat share a beam.
+    const beamGroups = [];
+    barEvents.forEach(evs => {
+      let cur = null;
+      evs.forEach(e => {
+        const beamable = !e.rest && e.dur === 0.5;
+        const prev = cur && cur[cur.length - 1];
+        if (beamable && prev && Math.floor(prev.start + 1e-9) === Math.floor(e.start + 1e-9)) cur.push(e);
+        else if (beamable) { cur = [e]; beamGroups.push(cur); }
+        else cur = null;
+      });
+    });
+    const beamUp = new Map();
+    beamGroups.filter(g => g.length > 1).forEach(g => {
+      const up = g.reduce((s, e) => s + e.note.pos, 0) / g.length <= 4;
+      g.forEach(e => beamUp.set(e, up));
+    });
+    const stemUpOf = e => (beamUp.has(e) ? beamUp.get(e) : e.note.pos <= 4);
 
     let svg = `<svg viewBox="0 0 ${VB_W} ${VB_H}" width="${width}" height="${renderH.toFixed(1)}" xmlns="http://www.w3.org/2000/svg">`;
+    const clefName = CLEF_GLYPH[clef] ? clef : 'treble';
+    const cmet = CLEF_GLYPH[clefName];
+    const keyPos = keySig > 0 ? KEY_SHARP_POS : KEY_FLAT_POS;
+    const keyGlyph = keySig > 0 ? '\u266F' : '\u266D';
 
-    systems.forEach((systemNotes, s) => {
+    for (let s = 0; s < systemCount; s++) {
       const topLineY = TOP_LINE_Y + s * SYSTEM_H;
       const y = pos => topLineY + (8 - pos) * HALF;
+      const firstBar = s * barsPerSystem;
+      const bars = Math.min(barsPerSystem, nBars - firstBar);
+      const endX = sysStartX + bars * barW;
+      const line = (x1, y1, x2, y2, w) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${INK}" stroke-width="${w}"/>`;
 
-      for (let p = 0; p <= 8; p += 2) {
-        svg += `<line x1="${lineStartX}" y1="${y(p)}" x2="${rightX}" y2="${y(p)}" stroke="${INK}" stroke-width="1.3"/>`;
-      }
-      const clefName = CLEF_GLYPH[clef] ? clef : 'treble';
-      const cmet = CLEF_GLYPH[clefName];
+      for (let p = 0; p <= 8; p += 2) svg += line(LEFT_X, y(p), endX, y(p), 1.3);
+      svg += line(LEFT_X, y(8), LEFT_X, y(0), 1.3);
       svg += clefAt(clefName, CLEF_MELODY_LEFT[clefName], STAFF_SPACE * CLEF_MELODY_SCALE, y(cmet.refPos), INK);
-      // Time signature: "4" over "4" centred on the middle of the staff.
+      for (let i = 0; i < keyCount; i++) {
+        svg += `<text x="${KEY_X + i * 8}" y="${y(keyPos[i]) + 6}" font-size="17" fill="${INK}" font-family="Georgia, serif">${keyGlyph}</text>`;
+      }
       if (s === 0) {
-        const sigX = lineStartX + 76;
-        svg += `<text x="${sigX}" y="${y(4) - 1}" font-size="26" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${sigNum}</text>`;
-        svg += `<text x="${sigX}" y="${y(2) + 15}" font-size="26" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${sigDen}</text>`;
+        const sigX = KEY_X + keyCount * 8 + 12;
+        svg += `<text x="${sigX}" y="${y(4) - 1}" font-size="24" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${sigNum}</text>`;
+        svg += `<text x="${sigX}" y="${y(2) + 14}" font-size="24" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${sigDen}</text>`;
       }
 
-      let globalIndex = systems.slice(0, s).reduce((a, sys) => a + sys.length, 0);
-      let sysBase = Infinity;
-      let sysEnd = 0;
-      systemNotes.forEach((note, k) => { const g = globalIndex + k; sysBase = Math.min(sysBase, starts[g]); sysEnd = Math.max(sysEnd, starts[g] + durs[g] + (gapArr[g] || 0)); });
-      if (sysBase === Infinity) sysBase = 0;
-      const sysSpan = sysEnd - sysBase || 1;
-      systemNotes.forEach((note, k) => {
-        const g = globalIndex + k;
-        const x = leftX + ((starts[g] - sysBase) / sysSpan) * (rightX - leftX);
-        const noteY = y(note.pos);
-        const lit = g === highlightIndex;
-        const color = lit ? accentColor : INK;
-        const duration = durs[g];
-        const gap = gapArr[g] || 0;
-        const effective = gap > 0 ? gap : duration;
-        const open = effective >= 2;                     // half and longer: hollow
-        const stemmed = effective < 4;                  // whole notes lose the stem
+      for (let b = 1; b < bars; b++) svg += line(sysStartX + b * barW, y(8), sysStartX + b * barW, y(0), 1.3);
+      if (s === systemCount - 1) {
+        svg += line(endX - 4, y(8), endX - 4, y(0), 1.3);
+        svg += line(endX, y(8), endX, y(0), 3.5);
+      } else {
+        svg += line(endX, y(8), endX, y(0), 1.3);
+      }
 
-        // Bar line just before this note when the previous note ended a bar.
-        if (k > 0 && barOf[g] !== barOf[g - 1]) {
-          const bx = x - ((rightX - leftX) / systemNotes.length) / 2;
-          svg += `<line x1="${bx}" y1="${y(8)}" x2="${bx}" y2="${y(0)}" stroke="${INK}" stroke-width="1.3"/>`;
-        }
-
-        if (lit) svg += `<circle cx="${x}" cy="${noteY}" r="13" fill="${accentColor}" opacity="0.18"/>`;
-        if (gap > 0) {
-          // A rest stands for the gap: the same head its value calls for, with no
-          // ledger line and no stem.
-          const restOpen = gap >= 2;
-          svg += `<ellipse cx="${x}" cy="${noteY}" rx="6.2" ry="4.6" fill="${restOpen ? 'none' : color}" stroke="${restOpen ? color : OPEN}" stroke-width="${restOpen ? 1.8 : 1.2}" transform="rotate(-18 ${x} ${noteY})"/>`;
-        } else {
+      for (let b = 0; b < bars; b++) {
+        barEvents[firstBar + b].forEach(e => {
+          const x = xOf.get(e);
+          if (e.rest) { svg += restSVG(x, y, e.dur, INK); return; }
+          const note = e.note;
+          const color = e.index === highlightIndex ? accentColor : INK;
+          const noteY = y(note.pos);
+          const up = stemUpOf(e);
+          if (e.index === highlightIndex) svg += `<circle cx="${x}" cy="${noteY}" r="12" fill="${accentColor}" opacity="0.18"/>`;
+          svg += `<g data-note-index="${e.index}">`;
           ledgerPositions(note.pos).forEach(p => {
-            svg += `<line x1="${x - 10}" y1="${y(p)}" x2="${x + 10}" y2="${y(p)}" stroke="${color}" stroke-width="1.3"/>`;
+            svg += `<line x1="${x - 9}" y1="${y(p)}" x2="${x + 9}" y2="${y(p)}" stroke="${color}" stroke-width="1.3"/>`;
           });
           if (note.accidental) {
-            svg += `<text x="${x - 15}" y="${noteY + 5}" font-size="18" fill="${color}" font-family="Georgia, serif">${note.accidental}</text>`;
+            svg += `<text x="${x - 13}" y="${noteY + 5}" font-size="17" fill="${color}" font-family="Georgia, serif">${note.accidental}</text>`;
           }
-          // Hollow noteheads read clearly against the staff, so they skip the dark
-          // separating ring a filled head needs; both keep the same rotation.
-          const headFill = open ? 'none' : color;
-          const headStroke = open ? color : OPEN;
-          const headStrokeW = open ? 1.8 : 1.2;
-          svg += `<ellipse cx="${x}" cy="${noteY}" rx="6.2" ry="4.6" fill="${headFill}" stroke="${headStroke}" stroke-width="${headStrokeW}" transform="rotate(-18 ${x} ${noteY})"/>`;
-          if (stemmed) {
-            const stemUp = note.pos <= 4;
-            const stemX = stemUp ? x + 6 : x - 6;
-            const stemEnd = stemUp ? noteY - 34 : noteY + 34;
+          const open = e.dur >= 2;
+          svg += `<ellipse cx="${x}" cy="${noteY}" rx="${HEAD_RX}" ry="4.2" fill="${open ? 'none' : color}" stroke="${open ? color : OPEN}" stroke-width="${open ? 1.8 : 1.2}" transform="rotate(-18 ${x} ${noteY})"/>`;
+          if (e.dur === 1.5) svg += `<circle cx="${x + 10}" cy="${noteY}" r="1.6" fill="${color}"/>`;
+          if (e.dur < 4) {
+            const stemX = up ? x + 5.5 : x - 5.5;
+            const stemEnd = up ? noteY - 32 : noteY + 32;
             svg += `<line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemEnd}" stroke="${color}" stroke-width="1.6"/>`;
           }
-        }
-      });
+          svg += `</g>`;
+        });
+      }
 
-      // Bar line at the end of every system.
-      svg += `<line x1="${rightX}" y1="${y(8)}" x2="${rightX}" y2="${y(0)}" stroke="${INK}" stroke-width="1.3"/>`;
-    });
+      beamGroups.filter(g => g.length > 1).forEach(g => {
+        const first = g[0];
+        const last = g[g.length - 1];
+        const bi0 = Math.min(nBars - 1, Math.floor(first.start / bpb + 1e-9));
+        if (bi0 < firstBar || bi0 >= firstBar + bars) return;
+        const up = beamUp.get(first);
+        const ends = e => [xOf.get(e) + (up ? 5.5 : -5.5), y(e.note.pos) + (up ? -32 : 32)];
+        const [x1, y1] = ends(first);
+        const [x2, y2] = ends(last);
+        const color = g.some(e => e.index === highlightIndex) ? accentColor : INK;
+        svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3.5"/>`;
+      });
+    }
 
     svg += `</svg>`;
     return svg;
