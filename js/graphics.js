@@ -27,7 +27,7 @@ const Graphics = (() => {
   }
 
   // ── STAFF NOTATION ──────────────────────────────────────────────────────
-  function staffSVG({ pos, accidental = null, clef = 'treble', accentColor = '#FF8C42', width = 130 }) {
+  function staffSVG({ pos, accidental = null, clef = 'treble', accentColor = 'var(--accent-warm)', width = 130 }) {
     const noteX = (STAFF_LEFT_X + STAFF_RIGHT_X) / 2 + 8;
     const noteY = yForPos(pos);
     const stemUp = pos <= 4;
@@ -209,7 +209,7 @@ const Graphics = (() => {
   }
 
   // ── RECORDER FINGERING DIAGRAM ──────────────────────────────────────────
-  function recorderFingeringSVG(fingeringState, accentColor = '#FF8C42', size = 130) {
+  function recorderFingeringSVG(fingeringState, accentColor = 'var(--accent-warm)', size = 130) {
     const [thumb, h1, h2, h3, h4, h5, h6, h7] = fingeringState;
     const cx = 65;
     const tubeTop = 18, tubeBottom = 215, tubeW = 30;
@@ -514,7 +514,7 @@ const Graphics = (() => {
   }
 
   // ── SONG SCORE (multi-note staff for full songs) ───────────────────────────
-  function songStaffSVG({ notes, clef = 'treble', accentColor = '#FF8C42', keySig = 0, timeSig = null }) {
+  function songStaffSVG({ notes, clef = 'treble', accentColor = 'var(--accent-warm)', keySig = 0, timeSig = null }) {
     const SPACING = 48;
     const MARGIN_R = 20;
     const H = 220;

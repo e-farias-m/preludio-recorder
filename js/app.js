@@ -577,7 +577,7 @@ function getMasteryLevel(correctCount) {
 }
 
 function getMasteryColor(level) {
-  return { new: '#524F70', learning: '#FF8C42', practiced: '#8B7BFF', mastered: '#4FD98A' }[level] || '#524F70';
+  return { new: '#524F70', learning: '#47D4A8', practiced: '#8B7BFF', mastered: '#4FD98A' }[level] || '#524F70';
 }
 
 function getMasteryLabel(level) {

@@ -25,7 +25,7 @@ const CURRICULUM = {
     clef: 'treble',
     fingeringType: 'recorder',
     isTransposing: false,
-    accentColor: '#C4832A',
+    accentColor: 'var(--accent-warm)',
     available: true,
     lessons: [
       {
@@ -276,7 +276,7 @@ const CURRICULUM = {
   // ── ALTO RECORDER (F) ──────────────────────────────────────────────────
   'alto-recorder': {
     id: 'alto-recorder', name: 'Alto Recorder', shortName: 'Alto',
-    clef: 'treble', fingeringType: 'recorder', isTransposing: false, available: true, accentColor: '#7BAFC0',
+    clef: 'treble', fingeringType: 'recorder', isTransposing: false, available: true, accentColor: 'var(--accent-warm)',
     lessons: [
       {
         id: 'ar-1', noteName: 'E', octave: 4, staffStep: 7, accidental: null, freq: 329.63,
@@ -443,7 +443,7 @@ const CURRICULUM = {
   // ── TENOR RECORDER (C) ─────────────────────────────────────────────────
   'tenor-recorder': {
     id: 'tenor-recorder', name: 'Tenor Recorder', shortName: 'Tenor',
-    clef: 'treble', fingeringType: 'recorder', isTransposing: false, available: true, accentColor: '#C4832A',
+    clef: 'treble', fingeringType: 'recorder', isTransposing: false, available: true, accentColor: 'var(--accent-warm)',
     lessons: [
       {
         id: 'tn-1', noteName: 'B', octave: 3, staffStep: 4, accidental: null, freq: 246.94,
@@ -598,7 +598,7 @@ const CURRICULUM = {
   // ── BASS RECORDER (bass clef) ──────────────────────────────────────────
   'bass-recorder': {
     id: 'bass-recorder', name: 'Bass Recorder', shortName: 'Bass',
-    clef: 'bass', fingeringType: 'recorder', isTransposing: false, available: true, accentColor: '#7A5C30',
+    clef: 'bass', fingeringType: 'recorder', isTransposing: false, available: true, accentColor: 'var(--accent-warm)',
     lessons: [
       {
         id: 'br-1', noteName: 'E', octave: 3, staffStep: 5, accidental: null, freq: 164.81,
