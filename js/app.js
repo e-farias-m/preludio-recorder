@@ -68,6 +68,7 @@ const VERSION = '1.0.2';
 const STORAGE_KEY = 'preludioRecorderProgress';
 const NAME_KEY = 'preludioRecorderName';
 const INSTRUMENT_KEY = 'preludioRecorderInstrument';
+const IMPORTED_SONGS_KEY = 'preludioRecorderImportedSongs';
 
 // Practice speed: a single multiplier applied to every count-in and song, so
 // the count-in always runs at the same tempo the song will. 100% = the song's
@@ -666,6 +667,16 @@ function getInstrument(id) { return CURRICULUM[id]; }
 function getLesson(instrumentId, index) {
   if (APP.importedSong) return APP.importedSong;
   return CURRICULUM[instrumentId].lessons[index];
+}
+function matchNoteToLesson(instrumentId, noteName, octave) {
+  const inst = getInstrument(instrumentId);
+  const searchName = noteName.replace(/♭/g, 'b').replace(/♯/g, '#');
+  const lesson = inst.lessons.find(l => {
+    if (l.type) return false;
+    const lName = l.noteName.replace(/♭/g, 'b').replace(/♯/g, '#');
+    return lName === searchName && l.octave === octave;
+  });
+  return lesson ? lesson.id : null;
 }
 function findLessonById(instrumentId, id) {
   return CURRICULUM[instrumentId].lessons.find(l => l.id === id);
@@ -1623,8 +1634,10 @@ function renderFirstSoundScreen() {
 function renderMapScreen() {
   const inst = getInstrument(APP.instrumentId);
   const prog = getInstrumentProgress(APP.instrumentId);
-  const total = inst.lessons.length;
-  const doneCount = inst.lessons.filter(l => prog.completed[l.id]).length;
+  const allImported = JSON.parse(LS.getItem(IMPORTED_SONGS_KEY) || '{}');
+  const instImported = (allImported[APP.instrumentId] || []).filter(s => s && s.noteIds);
+  const total = inst.lessons.length + instImported.length;
+  const doneCount = inst.lessons.filter(l => prog.completed[l.id]).length + instImported.filter(s => prog.completed[s.id]).length;
   const pct = total ? Math.round((doneCount / total) * 100) : 0;
   const learnedCount = getLearnedNotes(APP.instrumentId).length;
   const practiceReady = learnedCount >= 2;
@@ -1682,6 +1695,25 @@ function renderMapScreen() {
       </div>`;
   }).join('');
 
+  const importedNodes = instImported.map((s, i) => {
+    const completed = !!prog.completed[s.id];
+    const stateCls = completed ? 'done' : 'current';
+    const stars = completed ? prog.completed[s.id].stars : 0;
+    const inner = completed
+      ? `<span class="map-node-note">${escapeHtml(t(s.noteName))}</span><span class="map-node-star">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</span>`
+      : `<span class="map-node-note">${escapeHtml(t(s.noteName))}</span>`;
+    const prevId = i === 0 ? inst.lessons[inst.lessons.length - 1]?.id : instImported[i - 1]?.id;
+    const prevDone = prevId ? !!prog.completed[prevId] : false;
+    const connector = inst.lessons.length > 0 || i > 0 ? `<div class="map-connector ${prevDone ? 'done' : ''}"></div>` : '';
+    return `
+      <div class="map-node-wrap">
+        ${connector}
+        <div class="map-node ${stateCls}" data-action="open-imported-song" data-imported-index="${i}">${inner}</div>
+        <div class="map-node-label">${escapeHtml(t(s.noteName))}</div>
+        <button class="btn-icon" data-action="delete-imported-song" data-imported-index="${i}" title="Delete imported song" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-danger);margin-top:2px">✕ Delete</button>
+      </div>`;
+  }).join('');
+
   return `
     <div class="screen active">
       <div class="app-header">
@@ -1712,6 +1744,15 @@ function renderMapScreen() {
         </div>
         <div class="map-unit-label">${t('Unit 1 · First Notes')}</div>
         <div class="map-path">${nodes}</div>
+        ${instImported.length ? `
+          <div class="map-unit-label">Imported</div>
+          <div class="map-path">${importedNodes}</div>
+        </div>
+` : ''}
+        <div class="import-section" style="margin-top:20px;text-align:center">
+          <button class="btn btn-secondary" data-action="import-song">${t('+ Import Song')}</button>
+          <input type="file" id="import-file-input" accept=".xml,.musicxml" style="display:none"/>
+        </div>
         <div class="map-guide">
           <button class="map-guide-link" data-action="open-lookup">🎼 ${t('Fingering chart')}</button>
           <button class="map-guide-link" data-action="open-tutorial">❔ ${t('How this app works')}</button>
@@ -1851,7 +1892,7 @@ function renderSongPresentPhase(inst, lesson) {
     melodyNotes.push({ pos: n.staffStep, accidental: n.accidental, duration });
   });
   const melodySvg = melodyNotes.length
-    ? Graphics.melodySVG({ notes: melodyNotes, highlightIndex, clef: inst.clef, accentColor: inst.accentColor, width: 320, timeSig: lesson.timeSig, pickup: lesson.pickup })
+    ? Graphics.melodySVG({ notes: melodyNotes, highlightIndex, clef: inst.clef, accentColor: inst.accentColor, width: 320, timeSig: lesson.timeSig, pickup: lesson.pickup, gaps: lesson.gaps || [] })
     : '';
 
   const playLabel = playback.finished ? '\u21BB ' + t('Replay') : '\u25B6 ' + t('Play whole melody');
@@ -2530,12 +2571,14 @@ function runSongPlayback(inst, lesson) {
 
     // Pre-compute cumulative beat offsets so highlighting can use the
     // AudioContext clock directly — avoids setTimeout drift.
+    var gaps = Array.isArray(lesson.gaps) ? lesson.gaps : [];
     var beatDurs = notes.map(function(n) {
+      if (typeof n.dur === 'number') return n.dur;
       return n.dur === 'h' ? 2 : n.dur === 'w' ? 4 : n.dur === '8' ? 0.5 : 1;
     });
     var cumBeats = [0];
     for (var ci = 0; ci < notes.length; ci++) {
-      cumBeats.push(cumBeats[ci] + beatDurs[ci]);
+      cumBeats.push(cumBeats[ci] + (gaps[ci] || 0) + beatDurs[ci]);
     }
 
     function step(i) {
@@ -2595,7 +2638,7 @@ function runSongPlayback(inst, lesson) {
         APP.songPlayback.timer = setTimeout(function() { step(i + 1); }, Math.max(0, delay));
       } else {
         // Last note — let it ring for its full duration before ending
-        var lastBeat = beatDurs[notes.length - 1];
+        var lastBeat = (gaps[notes.length - 1] || 0) + beatDurs[notes.length - 1];
         var lastMs = lastBeat * spbMs;
         APP.songPlayback.timer = setTimeout(function() {
           APP.songPlayback.active = false;
@@ -2658,6 +2701,79 @@ function runSongPlayback(inst, lesson) {
   } else {
     kickoff(null);
   }
+}
+
+function importSongFromMusicXML(xmlString, instrumentId) {
+  const instId = instrumentId || APP.instrumentId;
+  const doc = new DOMParser().parseFromString(xmlString, 'text/xml');
+  const parseError = doc.querySelector('parsererror');
+  if (parseError) throw new Error('Invalid XML: ' + parseError.textContent);
+  const partName = doc.querySelector('part-name');
+  const title = partName ? partName.textContent.trim() : 'Imported Song';
+  const divisionsEl = doc.querySelector('attributes divisions');
+  const divisions = divisionsEl ? parseFloat(divisionsEl.textContent) || 1 : 1;
+
+  const noteIds = [];
+  const durations = [];
+  const gaps = [];
+  const unmatched = [];
+  const measures = Array.from(doc.querySelectorAll('measure'));
+  let timeSig = { num: 4, den: 4 };
+  for (const measureEl of measures) {
+    const timeEl = measureEl.querySelector('time');
+    if (timeEl) {
+      const beatsEl = timeEl.querySelector('beats');
+      const typeEl = timeEl.querySelector('beat-type');
+      const beats = beatsEl ? parseFloat(beatsEl.textContent) : 4;
+      const type = typeEl ? parseFloat(typeEl.textContent) : 4;
+      if (beats > 0) timeSig = { num: beats, den: type };
+    }
+    let beat = 0;
+    let prevEnd = 0;
+    const noteEls = Array.from(measureEl.querySelectorAll('note'));
+    for (const noteEl of noteEls) {
+      const isRest = !!noteEl.querySelector('rest');
+      const isChord = !!noteEl.querySelector('chord');
+      const durEl = noteEl.querySelector('duration');
+      const beats = durEl ? (parseFloat(durEl.textContent) || divisions) / divisions : 1;
+      const start = beat;
+      if (!isRest && !isChord) {
+        const step = noteEl.querySelector('pitch step');
+        const octave = noteEl.querySelector('pitch octave');
+        const alter = noteEl.querySelector('pitch alter');
+        if (step && octave) {
+          let nn = step.textContent;
+          const oct = parseInt(octave.textContent, 10);
+          if (alter) {
+            const a = parseInt(alter.textContent, 10);
+            if (a === -1) nn += 'b';
+            else if (a === 1) nn += '#';
+          }
+          const lessonId = matchNoteToLesson(instId, nn, oct);
+          if (!lessonId) {
+            unmatched.push(nn + oct);
+          } else {
+            noteIds.push(lessonId);
+            durations.push(beats);
+            gaps.push(Math.max(0, start - prevEnd));
+          }
+          const tieStop = !!noteEl.querySelector('tie[type="stop"]') || !!noteEl.querySelector('tied[type="stop"]');
+          if (tieStop && durations.length > 0) durations[durations.length - 1] += beats;
+        }
+      }
+      beat += beats;
+      prevEnd = beat;
+    }
+  }
+
+  if (noteIds.length === 0) throw new Error('No playable notes found in MusicXML');
+  const importedId = 'imported-' + Date.now();
+  const song = { id: importedId, type: 'song', noteName: title, prerequisiteIds: [], noteIds, durations, gaps, timeSig, pickup: 0, prompt: '', description: 'Imported from MusicXML.' };
+  const existing = JSON.parse(LS.getItem(IMPORTED_SONGS_KEY) || '{}');
+  if (!existing[APP.instrumentId]) existing[APP.instrumentId] = [];
+  existing[APP.instrumentId].push(song);
+  LS.setItem(IMPORTED_SONGS_KEY, JSON.stringify(existing));
+  return { song, unmatched };
 }
 
 // ── EVENT HANDLING ─────────────────────────────────────────────────────
@@ -2892,6 +3008,49 @@ function handleAction(action, el) {
     case 'locked-node':
       showToast(t('Finish the previous note first.'));
       break;
+
+    case 'import-song': {
+      document.getElementById('import-file-input').click();
+      break;
+    }
+    case 'import-file-chosen': {
+      // Handled by the change event listener below
+      break;
+    }
+    case 'open-imported-song': {
+      stopAudioPlayback();
+      startSession();
+      const idx = parseInt(el.dataset.importedIndex, 10);
+      const allImported = JSON.parse(LS.getItem(IMPORTED_SONGS_KEY) || '{}');
+      const songs = allImported[APP.instrumentId] || [];
+      const song = songs[idx];
+      if (!song) { showToast(t('Song not found.')); break; }
+      APP.importedSong = song;
+      APP.lessonIndex = -1;
+      APP.phase = 'present';
+      APP.songNoteIndex = 0;
+      APP.quiz = null;
+      APP.screen = 'lesson';
+      render();
+      break;
+    }
+    case 'delete-imported-song': {
+      const idx = parseInt(el.dataset.importedIndex, 10);
+      const allImported = JSON.parse(LS.getItem(IMPORTED_SONGS_KEY) || '{}');
+      const songs = allImported[APP.instrumentId] || [];
+      const removed = songs[idx];
+      songs.splice(idx, 1);
+      allImported[APP.instrumentId] = songs;
+      LS.setItem(IMPORTED_SONGS_KEY, JSON.stringify(allImported));
+      if (removed) {
+        const prog = APP.progress[APP.instrumentId];
+        if (prog && prog.completed) delete prog.completed[removed.id];
+        if (prog && prog.mastery) delete prog.mastery[removed.id];
+        saveProgress();
+      }
+      render();
+      break;
+    }
 
     case 'song-next': {
       APP.songNoteIndex = Math.min(APP.songNoteIndex + 1, getLesson(APP.instrumentId, APP.lessonIndex).noteIds.length - 1);
@@ -3299,6 +3458,30 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('change', (e) => {
+  const input = e.target;
+  if (input && input.id === 'import-file-input') {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const capturedInstrumentId = APP.instrumentId;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const { song, unmatched } = importSongFromMusicXML(reader.result, capturedInstrumentId);
+        if (unmatched.length) {
+          const ok = confirm(tFill('{n} notes in this song could not be matched to your instrument and will be skipped. Import anyway?', { n: unmatched.length }));
+          if (!ok) return;
+        }
+        showToast(tFill('Imported "{name}"', { name: song.noteName }));
+        render();
+      } catch (err) {
+        showToast(t('Import error: ') + err.message);
+      }
+    };
+    reader.onerror = () => showToast(t('Error reading file.'));
+    reader.readAsText(file);
+    input.value = '';
+    return;
+  }
   const el = e.target.closest('[data-action]');
   if (!el || el.hasAttribute('disabled')) return;
   handleAction(el.dataset.action, el);
