@@ -97,6 +97,9 @@ const AudioEngine = (() => {
 
     // Harmonics — quieter, only 2nd partial, no piercing upper partials
     const isLow = freq < 400;
+    const fundamentalGain = c.createGain();
+    fundamentalGain.gain.value = isLow ? 0.7 : 0.6;
+    osc1.connect(fundamentalGain).connect(out);
     const partials = [
       { mult: 2, type: 'sine', gain: isLow ? 0.08 : 0.05 },
     ];
@@ -122,9 +125,9 @@ const AudioEngine = (() => {
     const noiseBP = c.createBiquadFilter();
     noiseBP.type = 'bandpass';
     noiseBP.frequency.value = freq * 1.5;
-    noiseBP.Q.value = 0.6;
+    noiseBP.Q.value = 1.2;
     const noiseGain = c.createGain();
-    noiseGain.gain.value = isLow ? 0.04 : 0.05;
+    noiseGain.gain.value = isLow ? 0.015 : 0.02;
     noise.connect(noiseBP).connect(noiseGain).connect(out);
 
     // Master envelope — slower attack, gentler release
