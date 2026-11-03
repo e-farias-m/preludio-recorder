@@ -206,14 +206,15 @@ const Graphics = (() => {
     const LEFT_X = 16;
     const RIGHT_X = VB_W - 12;
     const KEY_X = 56;
-    const PAD = 6;
-    const HEAD_RX = 5.6;
+    const PAD = 4;
+    const MIN_SPACE = 11;   // closest centre-to-centre distance between noteheads
+    const HEAD_RX = 5.0;
     const bpb = timeSig ? timeSig.num * 4 / timeSig.den : beatsPerBar;
     const sigNum = timeSig ? timeSig.num : beatsPerBar;
     const sigDen = timeSig ? timeSig.den : 4;
     const keyCount = Math.min(Math.abs(keySig) || 0, 7);
     const sysStartX = KEY_X + keyCount * 8 + 26;
-    const barW = (RIGHT_X - sysStartX) / barsPerSystem;
+    const avail = RIGHT_X - sysStartX;
     const gapArr = Array.isArray(gaps) ? gaps : [];
     const positiveGap = g => (typeof gapArr[g] === 'number' && gapArr[g] > 0 ? gapArr[g] : 0);
     const durOf = n => (typeof n.duration === 'number' && n.duration > 0 ? n.duration : 1);
@@ -230,20 +231,33 @@ const Graphics = (() => {
     if (tail) { events.push({ rest: true, dur: tail, start: beat }); beat += tail; }
 
     const nBars = Math.max(1, Math.ceil(beat / bpb - 1e-9));
-    const systemCount = Math.ceil(nBars / barsPerSystem);
-    const VB_H = systemCount * SYSTEM_H + 8;
-    const renderH = width * (VB_H / VB_W);
     const barEvents = Array.from({ length: nBars }, () => []);
     events.forEach(e => {
       const bi = Math.min(nBars - 1, Math.floor(e.start / bpb + 1e-9));
       barEvents[bi].push(e);
     });
 
+    // Event weights set the spacing: a quarter gets more room than an eighth,
+    // and the bar must be wide enough that the tightest noteheads keep MIN_SPACE.
+    // Bars per system shrink when the tune is dense, so the notes never collide.
     const weight = e => 1 + e.dur;
+    const denomOf = evs => Math.max(evs.reduce((s, e) => s + weight(e), 0), bpb * 2);
+    const barNeed = evs => {
+      if (!evs.length) return 0;
+      const minW = Math.min(...evs.map(weight));
+      return MIN_SPACE * denomOf(evs) / minW + 2 * PAD;
+    };
+    const need = Math.max(...barEvents.map(barNeed));
+    const perSystem = Math.max(1, Math.min(barsPerSystem, Math.floor(avail / need)));
+    const barW = avail / perSystem;
+    const systemCount = Math.ceil(nBars / perSystem);
+    const VB_H = systemCount * SYSTEM_H + 30;
+    const renderH = width * (VB_H / VB_W);
+
     const xOf = new Map();
     barEvents.forEach((evs, bi) => {
-      const denom = Math.max(evs.reduce((s, e) => s + weight(e), 0), bpb * 2);
-      const barX = sysStartX + (bi % barsPerSystem) * barW;
+      const denom = denomOf(evs);
+      const barX = sysStartX + (bi % perSystem) * barW;
       let cum = 0;
       evs.forEach(e => {
         xOf.set(e, barX + PAD + ((cum + weight(e) / 2) / denom) * (barW - 2 * PAD));
@@ -279,8 +293,8 @@ const Graphics = (() => {
     for (let s = 0; s < systemCount; s++) {
       const topLineY = TOP_LINE_Y + s * SYSTEM_H;
       const y = pos => topLineY + (8 - pos) * HALF;
-      const firstBar = s * barsPerSystem;
-      const bars = Math.min(barsPerSystem, nBars - firstBar);
+      const firstBar = s * perSystem;
+      const bars = Math.min(perSystem, nBars - firstBar);
       const endX = sysStartX + bars * barW;
       const line = (x1, y1, x2, y2, w) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${INK}" stroke-width="${w}"/>`;
 
