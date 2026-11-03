@@ -206,7 +206,7 @@ const Graphics = (() => {
     const kind = dur >= 4 ? 'whole' : dur >= 2 ? 'half' : dur >= 1 ? 'quarter' : 'eighth';
     const glyph = REST_GLYPH[kind];
     const ref = kind === 'whole' ? 6 : 4;
-    const s = STAFF_SPACE / 250;
+    const s = (STAFF_SPACE / 250) * 0.8;
     const tx = x - ((glyph.x_min + glyph.x_max) / 2) * s;
     return `<path class="rest rest-${kind}" d="${glyph.d}" fill="${color}" transform="translate(${tx.toFixed(2)} ${y(ref).toFixed(2)}) scale(${s.toFixed(5)} ${(-s).toFixed(5)})"/>`;
   }
@@ -361,17 +361,38 @@ const Graphics = (() => {
         });
       }
 
-      beamGroups.filter(g => g.length > 1).forEach(g => {
+      beamGroups.forEach(g => {
         const first = g[0];
         const last = g[g.length - 1];
         const bi0 = Math.min(nBars - 1, Math.floor(first.start / bpb + 1e-9));
         if (bi0 < firstBar || bi0 >= firstBar + bars) return;
-        const up = beamUp.get(first);
-        const ends = e => [xOf.get(e) + (up ? 5.5 : -5.5), y(e.note.pos) + (up ? -32 : 32)];
-        const [x1, y1] = ends(first);
-        const [x2, y2] = ends(last);
         const color = g.some(e => e.index === highlightIndex) ? accentColor : INK;
-        svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3.5"/>`;
+        if (g.length === 1) {
+          const e = first;
+          const up = stemUpOf(e);
+          const sx = xOf.get(e) + (up ? 5.5 : -5.5);
+          const sy = up ? y(e.note.pos) - 32 : y(e.note.pos) + 32;
+          const ex = sx - (up ? 9 : -9);
+          const ey = up ? y(e.note.pos) - 22 : y(e.note.pos) + 22;
+          const cx = (sx + ex) / 2;
+          const cy = (sy + ey) / 2;
+          svg += `<path d="M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>`;
+        } else if (g.length === 2) {
+          const e1 = first;
+          const e2 = last;
+          const up = stemUpOf(e1);
+          const p1 = [xOf.get(e1) + (up ? 5.5 : -5.5), up ? y(e1.note.pos) - 32 : y(e1.note.pos) + 32];
+          const p2 = [xOf.get(e2) + (up ? 5.5 : -5.5), up ? y(e2.note.pos) - 32 : y(e2.note.pos) + 32];
+          const midX = (p1[0] + p2[0]) / 2;
+          const midY = (p1[1] + p2[1]) / 2;
+          svg += `<path d="M${p1[0]} ${p1[1]} Q${midX} ${midY} ${p2[0]} ${p2[1]}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>`;
+        } else {
+          const up = beamUp.get(first);
+          const ends = e => [xOf.get(e) + (up ? 5.5 : -5.5), y(e.note.pos) + (up ? -32 : 32)];
+          const [x1, y1] = ends(first);
+          const [x2, y2] = ends(last);
+          svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3.5"/>`;
+        }
       });
     }
 
