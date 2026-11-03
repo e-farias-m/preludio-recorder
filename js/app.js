@@ -64,7 +64,7 @@ const APP = {
   recordingUrl: null,
 };
 
-const VERSION = '1.0.2';
+const VERSION = '2.0.0';
 const STORAGE_KEY = 'preludioRecorderProgress';
 const NAME_KEY = 'preludioRecorderName';
 const INSTRUMENT_KEY = 'preludioRecorderInstrument';
