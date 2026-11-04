@@ -425,10 +425,12 @@ const CURRICULUM = {
       {
         id: 'ar-song-4', type: 'song',
         noteName: "Kum Ba Yah",
-        prerequisiteIds: ['ar-8', 'ar-9', 'ar-10'],
-        description: 'An African-American spiritual using F, G, and A in the upper register.',
-        prompt: 'Your first upper-register melody! Bright, focused air.',
-        noteIds: ['ar-8', 'ar-8', 'ar-10', 'ar-10', 'ar-9', 'ar-9', 'ar-8', 'ar-8', 'ar-8', 'ar-10', 'ar-10', 'ar-9', 'ar-9', 'ar-8', 'ar-10', 'ar-9', 'ar-8', 'ar-10', 'ar-9', 'ar-8'],
+        prerequisiteIds: ['ar-8', 'ar-9', 'ar-10', 'ar-12', 'ar-13', 'ar-14'],
+        description: 'An African-American spiritual using C, D, E, F, G, and A in the upper register.',
+        prompt: 'A call-and-response spiritual. Listen for the repeating "kum ba yah" phrase.',
+        keySig: 0, timeSig: { num: 4, den: 4 },
+        noteIds: ['ar-12', 'ar-14', 'ar-9', 'ar-9', 'ar-9', 'ar-10', 'ar-10', 'ar-9', 'ar-12', 'ar-14', 'ar-9', 'ar-9', 'ar-9', 'ar-8', 'ar-14', 'ar-13', 'ar-12', 'ar-14', 'ar-9', 'ar-9', 'ar-9', 'ar-10', 'ar-10', 'ar-9', 'ar-8', 'ar-14', 'ar-12', 'ar-13', 'ar-13', 'ar-12'],
+        durations: [1, 1, 1.5, 0.5, 2, 1, 1, 4, 1, 1, 1.5, 0.5, 2, 1, 1, 4, 1, 1, 1.5, 0.5, 2, 1, 1, 4, 2, 1, 1, 1, 1, 2],
       },
       {
         id: 'ar-song-5', type: 'song',
@@ -580,10 +582,12 @@ const CURRICULUM = {
       {
         id: 'tn-song-4', type: 'song',
         noteName: "Kum Ba Yah",
-        prerequisiteIds: ['tn-2', 'tn-3', 'tn-7'],
-        description: 'An African-American spiritual using forked F, G, and A on the tenor.',
-        prompt: 'Your first song with the forked F! Slow, warm air for these lower notes.',
-        noteIds: ['tn-7', 'tn-7', 'tn-2', 'tn-2', 'tn-3', 'tn-3', 'tn-7', 'tn-7', 'tn-7', 'tn-2', 'tn-2', 'tn-3', 'tn-3', 'tn-7', 'tn-2', 'tn-3', 'tn-7', 'tn-2', 'tn-3', 'tn-7'],
+        prerequisiteIds: ['tn-2', 'tn-3', 'tn-4', 'tn-5', 'tn-6', 'tn-7'],
+        description: 'An African-American spiritual using C, D, E, F, G, and A on the tenor.',
+        prompt: 'A call-and-response spiritual. Listen for the repeating "kum ba yah" phrase.',
+        keySig: 0, timeSig: { num: 4, den: 4 },
+        noteIds: ['tn-6', 'tn-4', 'tn-3', 'tn-3', 'tn-3', 'tn-2', 'tn-2', 'tn-3', 'tn-6', 'tn-4', 'tn-3', 'tn-3', 'tn-3', 'tn-7', 'tn-4', 'tn-5', 'tn-6', 'tn-4', 'tn-3', 'tn-3', 'tn-3', 'tn-2', 'tn-2', 'tn-3', 'tn-7', 'tn-4', 'tn-6', 'tn-5', 'tn-5', 'tn-6'],
+        durations: [1, 1, 1.5, 0.5, 2, 1, 1, 4, 1, 1, 1.5, 0.5, 2, 1, 1, 4, 1, 1, 1.5, 0.5, 2, 1, 1, 4, 2, 1, 1, 1, 1, 2],
       },
       {
         id: 'tn-song-5', type: 'song',
