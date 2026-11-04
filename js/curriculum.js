@@ -159,10 +159,12 @@ const CURRICULUM = {
       {
         id: 'sr-song-6', type: 'song',
         noteName: "Kum Ba Yah",
-        prerequisiteIds: ['sr-2', 'sr-3', 'sr-7'],
-        description: 'An African-American spiritual using F, G, and A on the soprano.',
-        prompt: 'Your first song with the forked F! Listen for the call-and-response shape.',
-        noteIds: ['sr-7', 'sr-7', 'sr-2', 'sr-2', 'sr-3', 'sr-3', 'sr-7', 'sr-7', 'sr-7', 'sr-2', 'sr-2', 'sr-3', 'sr-3', 'sr-7', 'sr-2', 'sr-3', 'sr-7', 'sr-2', 'sr-3', 'sr-7'],
+        prerequisiteIds: ['sr-2', 'sr-3', 'sr-4', 'sr-5', 'sr-6', 'sr-7'],
+        description: 'An African-American spiritual using C, D, E, F, G, and A on the soprano.',
+        prompt: 'A call-and-response spiritual. Listen for the repeating "kum ba yah" phrase.',
+        keySig: 0, timeSig: { num: 4, den: 4 },
+        noteIds: ['sr-6', 'sr-4', 'sr-3', 'sr-3', 'sr-3', 'sr-2', 'sr-2', 'sr-3', 'sr-6', 'sr-4', 'sr-3', 'sr-3', 'sr-3', 'sr-7', 'sr-4', 'sr-5', 'sr-6', 'sr-4', 'sr-3', 'sr-3', 'sr-3', 'sr-2', 'sr-2', 'sr-3', 'sr-7', 'sr-4', 'sr-6', 'sr-5', 'sr-5', 'sr-6'],
+        durations: [1, 1, 1.5, 0.5, 2, 1, 1, 4, 1, 1, 1.5, 0.5, 2, 1, 1, 4, 1, 1, 1.5, 0.5, 2, 1, 1, 4, 2, 1, 1, 1, 1, 2],
       },
       {
         id: 'sr-song-7', type: 'song',
