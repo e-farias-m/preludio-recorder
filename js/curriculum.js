@@ -123,16 +123,6 @@ const CURRICULUM = {
         prompt: 'Cover thumb + holes 1, 2, 3, 5, and 6. Leave holes 4 and 7 open. Half-thumb for this sharp F.'
       },
       {
-        id: 'sr-song-5', type: 'song',
-        noteName: 'Merrily We Roll Along',
-        prerequisiteIds: ['sr-1', 'sr-2', 'sr-3'],
-        description: 'The tune behind "Mary Had a Little Lamb" using B, A, and G.',
-        prompt: 'Listen for the repeating three-note pattern!',
-        keySig: 1, timeSig: { num: 4, den: 4 },
-        noteIds: ['sr-1', 'sr-2', 'sr-3', 'sr-2', 'sr-1', 'sr-1', 'sr-1', 'sr-2', 'sr-2', 'sr-2', 'sr-1', 'sr-1', 'sr-1', 'sr-1', 'sr-2', 'sr-3', 'sr-2', 'sr-1', 'sr-1', 'sr-1', 'sr-1', 'sr-2', 'sr-2', 'sr-1', 'sr-2', 'sr-3'],
-        durations: ['q', 'q', 'q', 'q', 'q', 'q', 'h', 'q', 'q', 'h', 'q', 'q', 'h', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'w'],
-      },
-      {
         id: 'sr-review-1',
         type: 'review',
         reviewLessonIds: ['sr-1', 'sr-2', 'sr-3', 'sr-4', 'sr-5'],
