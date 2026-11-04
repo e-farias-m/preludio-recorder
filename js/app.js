@@ -644,6 +644,58 @@ function isSongLesson(lesson) {
   return lesson && lesson.type === 'song';
 }
 
+// ── SONG LIBRARY HELPERS ─────────────────────────────────────────────────
+// A song is "library-only" when it lives in the catalog but not on the
+// lesson path (so it doesn't clutter the progression).
+function isLibrarySong(lesson) {
+  return isSongLesson(lesson) && !!lesson.libraryOnly;
+}
+
+function songDistinctNotes(song) {
+  return new Set(song && song.noteIds ? song.noteIds : []).size;
+}
+
+function getInstrumentSongs(inst) {
+  if (!inst) return [];
+  return inst.lessons
+    .map((lesson, index) => ({ lesson, index }))
+    .filter(({ lesson }) => isSongLesson(lesson))
+    .sort((a, b) => songDistinctNotes(a.lesson) - songDistinctNotes(b.lesson) ||
+      (a.lesson.noteName || '').localeCompare(b.lesson.noteName || ''));
+}
+
+function isSongPlayable(song, prog) {
+  if (!song || !song.prerequisiteIds) return true;
+  return song.prerequisiteIds.every(id => !!(prog && prog.completed && prog.completed[id]));
+}
+
+function getMissingPrereqNames(song, prog, instrumentId) {
+  if (!song || !song.prerequisiteIds) return [];
+  const missing = song.prerequisiteIds.filter(id => !(prog && prog.completed && prog.completed[id]));
+  const names = [];
+  missing.forEach(id => {
+    const l = findLessonById(instrumentId, id);
+    if (l && names.indexOf(l.noteName) === -1) names.push(l.noteName);
+  });
+  return names;
+}
+
+// Returns up to 2 playable, uncompleted songs, boosting those that use the
+// just-completed note/lesson so the recommendation feels "newly unlocked".
+function getRecommendedSongs(inst, prog, justCompletedId) {
+  if (!inst || !prog) return [];
+  const candidates = getInstrumentSongs(inst)
+    .filter(({ lesson }) => lesson.id !== justCompletedId)
+    .filter(({ lesson }) => isSongPlayable(lesson, prog) && !prog.completed[lesson.id]);
+  const boosted = justCompletedId
+    ? candidates.filter(({ lesson }) => lesson.prerequisiteIds && lesson.prerequisiteIds.indexOf(justCompletedId) !== -1)
+    : [];
+  const rest = justCompletedId
+    ? candidates.filter(({ lesson }) => !(lesson.prerequisiteIds && lesson.prerequisiteIds.indexOf(justCompletedId) !== -1))
+    : candidates;
+  return boosted.concat(rest).slice(0, 2);
+}
+
 function isLessonUnlocked(instrumentId, index) {
   const instrument = CURRICULUM[instrumentId];
   const lesson = instrument.lessons[index];
@@ -1240,6 +1292,60 @@ function renderReportScreen() {
     </div>`;
 }
 
+function renderSongLibraryScreen(inst) {
+  if (!inst) {
+    return `
+      <div class="screen active song-lib-screen">
+        <div class="app-header">
+          <button class="header-back" data-action="go-select">\u2190</button>
+          <div class="header-title">${t('Song Library')}</div>
+        </div>
+        <div class="lesson-body">
+          <div class="song-lib-empty">${t('No songs yet.')}</div>
+        </div>
+      </div>`;
+  }
+  const prog = getInstrumentProgress(APP.instrumentId);
+  const songs = getInstrumentSongs(inst);
+  const cards = songs.map(({ lesson, index }) => {
+    const playable = isSongPlayable(lesson, prog);
+    const completed = !!prog.completed[lesson.id];
+    const stars = completed ? (prog.completed[lesson.id].stars || 0) : 0;
+    const distinct = songDistinctNotes(lesson);
+    const noteSet = [...new Set(lesson.noteIds || [])].map(id => {
+      const l = findLessonById(APP.instrumentId, id);
+      return l ? t(l.noteName) : id;
+    }).join(', ');
+    const missing = getMissingPrereqNames(lesson, prog, APP.instrumentId);
+    const lockText = missing.length ? tFill('Learn {notes} to unlock', { notes: missing.join(', ') }) : '';
+    return `
+      <div class="song-lib-card ${playable ? '' : 'locked'} ${completed ? 'done' : ''}">
+        <div class="song-lib-head">
+          <div class="song-lib-title">${escapeHtml(t(lesson.noteName))}</div>
+          <div class="song-lib-level">${distinct} ${t('notes')}</div>
+        </div>
+        <div class="song-lib-notes">${escapeHtml(noteSet)}</div>
+        ${completed ? `<div class="song-lib-stars">${'\u2605'.repeat(stars)}${'\u2606'.repeat(3 - stars)}</div>` : ''}
+        ${!playable ? `<div class="song-lib-lock">\u{1F512} ${escapeHtml(lockText)}</div>` : ''}
+        <div class="song-lib-actions">
+          <button class="btn ${playable ? 'btn-primary' : 'btn-secondary'}" data-action="${playable ? 'open-lesson' : 'locked-song'}" data-index="${index}" style="padding:6px 14px;font-size:13px">${playable ? t('Play') : t('Locked')}</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="screen active song-lib-screen">
+      <div class="app-header">
+        <button class="header-back" data-action="close-song-library">\u2190</button>
+        <div class="header-title">${t('Song Library')}</div>
+      </div>
+      <div class="lesson-body">
+        <div class="song-lib-intro">${t('Pick any song you can play. Songs unlock as you learn new notes.')}</div>
+        <div class="song-lib-list">${cards || '<div class="song-lib-empty">' + t('No songs yet.') + '</div>'}</div>
+      </div>
+    </div>`;
+}
+
 function renderSelectScreen() {
   const savedId = getSavedInstrument();
   const savedInst = savedId && CURRICULUM[savedId] && CURRICULUM[savedId].available
@@ -1252,6 +1358,10 @@ function renderSelectScreen() {
   const badgesHtml = studentName ? renderBadgeShelf() : '';
   const reportHtml = studentName
     ? `<button class="btn btn-secondary report-open" data-action="open-report">\u{1F4CB} ${t('Progress report')}</button>`
+    : '';
+
+  const songsHtml = (!picking && savedInst)
+    ? `<button class="btn btn-secondary report-open" data-action="open-song-library">\u{1F3B5} ${t('Songs')}</button>`
     : '';
 
   let headline;
@@ -1285,6 +1395,7 @@ function renderSelectScreen() {
       </div>
       ${motivationHtml}
       ${reportHtml}
+      ${songsHtml}
       ${instrumentArea}
       ${badgesHtml}
       <div class="version-badge" data-action="show-analytics" style="cursor:pointer">v${VERSION}</div>
@@ -1636,8 +1747,9 @@ function renderMapScreen() {
   const prog = getInstrumentProgress(APP.instrumentId);
   const allImported = JSON.parse(LS.getItem(IMPORTED_SONGS_KEY) || '{}');
   const instImported = (allImported[APP.instrumentId] || []).filter(s => s && s.noteIds);
-  const total = inst.lessons.length + instImported.length;
-  const doneCount = inst.lessons.filter(l => prog.completed[l.id]).length + instImported.filter(s => prog.completed[s.id]).length;
+  const pathLessons = inst.lessons.filter(l => !l.libraryOnly);
+  const total = pathLessons.length + instImported.length;
+  const doneCount = pathLessons.filter(l => prog.completed[l.id]).length + instImported.filter(s => prog.completed[s.id]).length;
   const pct = total ? Math.round((doneCount / total) * 100) : 0;
   const learnedCount = getLearnedNotes(APP.instrumentId).length;
   const practiceReady = learnedCount >= 2;
@@ -1648,6 +1760,7 @@ function renderMapScreen() {
     : '';
 
   const nodes = inst.lessons.map((lesson, i) => {
+    if (lesson.libraryOnly) return '';
     const unlocked = isLessonUnlocked(APP.instrumentId, i);
     const completed = !!prog.completed[lesson.id];
     const isReview = isReviewLesson(lesson);
@@ -2157,6 +2270,18 @@ function renderCompletePhase(inst, lesson) {
   const starsHtml = '★'.repeat(stars) + '☆'.repeat(3 - stars);
   const isReview = isReviewLesson(lesson);
 
+  const _recInst = getInstrument(APP.instrumentId);
+  const _recProg = getInstrumentProgress(APP.instrumentId);
+  const _recs = getRecommendedSongs(_recInst, _recProg, lesson.id);
+  const _recHtml = _recs.length ? `
+    <div class="song-rec">
+      <div class="song-rec-title">${t('Try a song')}</div>
+      <div class="song-rec-btns">
+        ${_recs.map(({ lesson: s, index }) => `
+          <button class="btn btn-secondary" data-action="open-lesson" data-index="${index}" style="padding:6px 12px;font-size:13px">\u{1F3B5} ${escapeHtml(t(s.noteName))}</button>`).join('')}
+      </div>
+    </div>` : '';
+
   if (isReview) {
     // Review summary: show each reviewed note's mastery
     const notesHtml = lesson.reviewLessonIds.map(id => {
@@ -2178,6 +2303,7 @@ function renderCompletePhase(inst, lesson) {
         <div class="complete-title">${t('Review complete!')}</div>
         <div class="complete-sub">${APP.reviewCorrect} of ${APP.reviewTotal} on first try</div>
         <div class="review-notes-list">${notesHtml}</div>
+        ${_recHtml}
         <div class="gap-lg"></div>
         <button class="btn btn-primary btn-wide" data-action="finish-lesson">Continue</button>
       </div>`;
@@ -2202,6 +2328,7 @@ function renderCompletePhase(inst, lesson) {
       <div class="complete-title">${alreadyDone ? t('Review complete!') : t('Lesson complete!')}</div>
       <div class="complete-sub">${t(messages[masteryLevel])}</div>
       <div style="margin-top:8px;padding:6px 14px;border-radius:20px;background:${masteryColor}22;color:${masteryColor};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em">${getMasteryLabel(masteryLevel)} — ${mastery} ${t('correct')}</div>
+      ${_recHtml}
       <div class="gap-lg"></div>
       <button class="btn btn-primary btn-wide" data-action="finish-lesson">Continue</button>
     </div>`;
@@ -2444,6 +2571,7 @@ function render() {
   else if (APP.screen === 'lookup') app.innerHTML = renderLookupScreen();
   else if (APP.screen === 'tutorial') app.innerHTML = renderTutorialScreen();
   else if (APP.screen === 'report') app.innerHTML = renderReportScreen();
+  else if (APP.screen === 'song-library') app.innerHTML = renderSongLibraryScreen(getInstrument(APP.instrumentId));
   else if (APP.screen === 'practice') app.innerHTML = renderPracticeScreen();
   else if (APP.screen === 'lesson') app.innerHTML = renderLessonScreen();
   else if (APP.screen === 'settings') app.innerHTML = renderSettingsScreen();
@@ -2909,6 +3037,33 @@ function handleAction(action, el) {
       APP.screen = 'select';
       render();
       break;
+
+    case 'open-song-library': {
+      if (!APP.instrumentId) {
+        const saved = getSavedInstrument();
+        if (saved) { APP.instrumentId = saved; setSavedInstrument(saved); }
+      }
+      APP.screen = 'song-library';
+      render();
+      break;
+    }
+
+    case 'close-song-library':
+      APP.screen = 'select';
+      render();
+      break;
+
+    case 'locked-song': {
+      const idx = parseInt(el.dataset.index, 10);
+      const inst = getInstrument(APP.instrumentId);
+      const song = inst && inst.lessons[idx];
+      if (song) {
+        const prog = getInstrumentProgress(APP.instrumentId);
+        const missing = getMissingPrereqNames(song, prog, APP.instrumentId);
+        if (missing.length) showToast(tFill('Learn {notes} to unlock', { notes: missing.join(', ') }));
+      }
+      break;
+    }
 
     case 'copy-report': {
       const text = formatReportText(buildPracticeReport(getStudentName()));

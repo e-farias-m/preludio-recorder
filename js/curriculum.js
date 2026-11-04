@@ -226,6 +226,16 @@ const CURRICULUM = {
         ],
       },
       {
+        id: 'sr-song-10', type: 'song', libraryOnly: true,
+        noteName: "Ode to Joy",
+        prerequisiteIds: ['sr-1', 'sr-2', 'sr-3', 'sr-5', 'sr-6'],
+        description: 'Beethoven\u2019s famous melody using B, A, G, D, and C.',
+        prompt: 'Play each note evenly \u2014 a steady, singing tone.',
+        keySig: 0, timeSig: { num: 4, den: 4 },
+        noteIds: ['sr-1', 'sr-1', 'sr-6', 'sr-5', 'sr-5', 'sr-6', 'sr-1', 'sr-2', 'sr-3', 'sr-3', 'sr-2', 'sr-1', 'sr-1', 'sr-2', 'sr-2'],
+        durations: ['q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'h'],
+      },
+      {
         id: 'sr-9',
         noteName: 'D',
         octave: 6,
