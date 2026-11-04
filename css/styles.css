@@ -3150,3 +3150,16 @@ button:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2
 }
 .song-rec-title { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
 .song-rec-btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+/* ── FIXED LOGO (every non-home screen) ─────────────────────────────── */
+.app-logo-fixed {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  height: 20px;
+  width: auto;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 40;
+  display: none;
+}

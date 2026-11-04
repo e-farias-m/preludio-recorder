@@ -2579,6 +2579,8 @@ function render() {
   else if (APP.screen === 'game') app.innerHTML = renderGameScreen();
   if (typeof applyI18nToDOM === 'function') applyI18nToDOM();
   renderToolWidget();
+  const _logoFixed = document.getElementById('app-logo-fixed');
+  if (_logoFixed) _logoFixed.style.display = (APP.screen === 'select') ? 'none' : 'block';
   if (APP.showReference) {
     const refHtml = renderReferenceOverlay();
     if (refHtml) app.insertAdjacentHTML('beforeend', refHtml);
