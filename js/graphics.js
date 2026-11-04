@@ -401,12 +401,13 @@ const Graphics = (() => {
   }
 
   // ── RECORDER FINGERING DIAGRAM ──────────────────────────────────────────
-  function recorderFingeringSVG(fingeringState, accentColor = 'var(--accent-warm)', size = 130) {
+  function recorderFingeringSVG(fingeringState, accentColor = 'var(--accent-warm)', size = 130, splitHoles = [], splitHoleState = {}) {
     const [thumb, h1, h2, h3, h4, h5, h6, h7] = fingeringState;
     const cx = 65;
     const tubeTop = 18, tubeBottom = 215, tubeW = 30;
     const holeYs = [62, 84, 106, 132, 154, 176, 198]; // h1..h7
     const holes = [h1, h2, h3, h4, h5, h6, h7];
+    const splitSet = new Set(splitHoles || []);
 
     let svg = `<svg viewBox="0 0 130 230" width="${size}" height="${size * 230 / 130}" xmlns="http://www.w3.org/2000/svg">`;
 
@@ -426,11 +427,25 @@ const Graphics = (() => {
     svg += `<circle cx="${cx - tubeW/2 - 28}" cy="${thumbY}" r="9" fill="${thumb ? accentColor : '#161530'}" stroke="${accentColor}" stroke-width="2"/>`;
     svg += `<text x="${cx - tubeW/2 - 28}" y="${thumbY + 24}" font-size="9" fill="#8986A8" text-anchor="middle" font-weight="600">TH</text>`;
 
-    // Finger holes 1-7 down the front
+    // Finger holes 1-7 down the front. Holes 6 and 7 may be split (double)
+    // holes on alto/bass recorders: left sub-hole ~60% size, right ~35%.
     holes.forEach((covered, i) => {
+      const holeNum = i + 1;
       const y = holeYs[i];
       const r = i < 3 ? 9 : 7.5;
-      svg += `<circle cx="${cx}" cy="${y}" r="${r}" fill="${covered ? accentColor : '#161530'}" stroke="${accentColor}" stroke-width="2"/>`;
+      if (splitSet.has(holeNum)) {
+        const state = (splitHoleState && splitHoleState[holeNum]) || 'both';
+        const leftFilled = !!covered && (state === 'left' || state === 'both');
+        const rightFilled = !!covered && (state === 'right' || state === 'both');
+        const leftR = r * 0.6;
+        const rightR = r * 0.35;
+        const leftX = cx - 5;
+        const rightX = cx + 5;
+        svg += `<circle cx="${leftX}" cy="${y}" r="${leftR}" fill="${leftFilled ? accentColor : '#161530'}" stroke="${accentColor}" stroke-width="2"/>`;
+        svg += `<circle cx="${rightX}" cy="${y}" r="${rightR}" fill="${rightFilled ? accentColor : '#161530'}" stroke="${accentColor}" stroke-width="2"/>`;
+      } else {
+        svg += `<circle cx="${cx}" cy="${y}" r="${r}" fill="${covered ? accentColor : '#161530'}" stroke="${accentColor}" stroke-width="2"/>`;
+      }
     });
 
     svg += `</svg>`;
@@ -550,8 +565,8 @@ const Graphics = (() => {
     return svg;
   }
 
-  function fingeringSVG(fingeringType, fingeringState, accentColor, size = 130) {
-    if (fingeringType === 'recorder') return recorderFingeringSVG(fingeringState, accentColor, size);
+  function fingeringSVG(fingeringType, fingeringState, accentColor, size = 130, splitHoles = [], splitHoleState = {}) {
+    if (fingeringType === 'recorder') return recorderFingeringSVG(fingeringState, accentColor, size, splitHoles, splitHoleState);
     if (fingeringType === 'trombone') return tromboneFingeringSVG(fingeringState, accentColor, size);
     if (['flute', 'clarinet', 'saxophone', 'oboe', 'bassoon'].includes(fingeringType)) {
       return woodwindFingeringSVG(fingeringState, accentColor, size);

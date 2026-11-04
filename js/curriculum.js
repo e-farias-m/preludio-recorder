@@ -117,6 +117,12 @@ const CURRICULUM = {
         prompt: 'Cover thumb + holes 1–6. Only hole 7 (your pinky) stays open. Listen carefully for a warm, clear tone.'
       },
       {
+        id: 'sr-fs', noteName: 'F#', octave: 5, staffStep: 8, accidental: '\u266F', freq: 739.99,
+        fingeringState: [true, true, true, true, false, true, true, false],
+        description: 'F sharp — the forked F with half-thumb. A bright, focused tone.',
+        prompt: 'Cover thumb + holes 1, 2, 3, 5, and 6. Leave holes 4 and 7 open. Half-thumb for this sharp F.'
+      },
+      {
         id: 'sr-song-5', type: 'song',
         noteName: 'Merrily We Roll Along',
         prerequisiteIds: ['sr-1', 'sr-2', 'sr-3'],
@@ -157,13 +163,19 @@ const CURRICULUM = {
         prompt: 'Cover thumb + holes 1, 2, 3, 4, and 6. Leave holes 5 and 7 open. This "fork" takes practice to get clean.'
       },
       {
+        id: 'sr-bb', noteName: 'B\u266D', octave: 5, staffStep: 11, accidental: '\u266D', freq: 932.33,
+        fingeringState: [false, true, true, true, false, false, false, false],
+        description: 'B flat — half-thumb + holes 1, 2, 3. A warm, covered sound.',
+        prompt: 'Pinch the thumb hole. Cover holes 1, 2, and 3. Right hand open. Blow gently.'
+      },
+      {
         id: 'sr-song-6', type: 'song',
         noteName: "Kum Ba Yah",
-        prerequisiteIds: ['sr-2', 'sr-3', 'sr-4', 'sr-5', 'sr-6', 'sr-7'],
-        description: 'An African-American spiritual using C, D, E, F, G, and A on the soprano.',
+        prerequisiteIds: ['sr-2', 'sr-3', 'sr-7', 'sr-8', 'sr-9', 'sr-bb'],
+        description: 'An African-American spiritual using F, G, A, Bb, C, and D on the soprano.',
         prompt: 'A call-and-response spiritual. Listen for the repeating "kum ba yah" phrase.',
-        keySig: 0, timeSig: { num: 4, den: 4 },
-        noteIds: ['sr-6', 'sr-4', 'sr-3', 'sr-3', 'sr-3', 'sr-2', 'sr-2', 'sr-3', 'sr-6', 'sr-4', 'sr-3', 'sr-3', 'sr-3', 'sr-7', 'sr-4', 'sr-5', 'sr-6', 'sr-4', 'sr-3', 'sr-3', 'sr-3', 'sr-2', 'sr-2', 'sr-3', 'sr-7', 'sr-4', 'sr-6', 'sr-5', 'sr-5', 'sr-6'],
+        keySig: -1, timeSig: { num: 4, den: 4 },
+        noteIds: ['sr-7', 'sr-2', 'sr-8', 'sr-8', 'sr-8', 'sr-9', 'sr-9', 'sr-8', 'sr-7', 'sr-2', 'sr-8', 'sr-8', 'sr-8', 'sr-bb', 'sr-2', 'sr-3', 'sr-7', 'sr-2', 'sr-8', 'sr-8', 'sr-8', 'sr-9', 'sr-9', 'sr-8', 'sr-bb', 'sr-2', 'sr-7', 'sr-3', 'sr-3', 'sr-7'],
         durations: [1, 1, 1.5, 0.5, 2, 1, 1, 4, 1, 1, 1.5, 0.5, 2, 1, 1, 4, 1, 1, 1.5, 0.5, 2, 1, 1, 4, 2, 1, 1, 1, 1, 2],
       },
       {
@@ -238,6 +250,17 @@ const CURRICULUM = {
         durations: ['q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'h'],
       },
       {
+        id: 'sr-song-11', type: 'song', libraryOnly: true,
+        noteName: "Three Blind Mice",
+        prerequisiteIds: ['sr-3', 'sr-4', 'sr-5', 'sr-6', 'sr-fs'],
+        description: 'A traditional nursery rhyme using C, D, E, F#, and G.',
+        prompt: 'Watch for the F sharp \u2014 it gives the melody its special color.',
+        keySig: 1, timeSig: { num: 4, den: 4 },
+        noteIds: ['sr-4', 'sr-5', 'sr-6', 'sr-4', 'sr-5', 'sr-6', 'sr-3', 'sr-fs', 'sr-4', 'sr-5', 'sr-6'],
+        durations: ['q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'w'],
+        gaps: [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0],
+      },
+      {
         id: 'sr-9',
         noteName: 'D',
         octave: 6,
@@ -296,6 +319,7 @@ const CURRICULUM = {
   'alto-recorder': {
     id: 'alto-recorder', name: 'Alto Recorder', shortName: 'Alto',
     clef: 'treble', fingeringType: 'recorder', isTransposing: false, available: true, accentColor: 'var(--accent-warm)',
+    splitHoles: [6, 7],
     lessons: [
       {
         id: 'ar-1', noteName: 'E', octave: 4, staffStep: 7, accidental: null, freq: 329.63,
@@ -308,6 +332,13 @@ const CURRICULUM = {
         fingeringState: [true, true, true, false, false, false, false, false],
         description: 'Add your left middle finger — now playing D.',
         prompt: 'Cover thumb + holes 1 and 2. Keep the air steady and listen for a warm, centered pitch.'
+      },
+      {
+        id: 'ar-fs', noteName: 'F#', octave: 4, staffStep: 1, accidental: '\u266F', freq: 369.99,
+        fingeringState: [true, true, true, true, true, true, true, true],
+        splitHoleState: { 7: 'left' },
+        description: 'F sharp — upper register. Thumb + holes 1 through 6 and 7a.',
+        prompt: 'Cover thumb + holes 1 through 6, closing only the upper hole of 7. Fast, focused air.'
       },
       {
         id: 'ar-3', noteName: 'C', octave: 4, staffStep: 5, accidental: null, freq: 261.63,
@@ -367,6 +398,13 @@ const CURRICULUM = {
         fingeringState: [true, true, true, true, true, true, true, true],
         description: 'F — all holes covered. The bottom of the alto\'s range.',
         prompt: 'Cover everything: thumb + holes 1 through 7. Big, warm air for this deep, dark F.'
+      },
+      {
+        id: 'ar-bb', noteName: 'B\u266D', octave: 3, staffStep: -3, accidental: '\u266D', freq: 233.08,
+        fingeringState: [true, true, true, true, true, false, true, true],
+        splitHoleState: {},
+        description: 'B flat — thumb + holes 1, 2, 3, 4, 6, and 7. A warm, covered low B flat.',
+        prompt: 'Cover thumb + holes 1, 2, 3, 4, 6, and 7. Leave hole 5 open.'
       },
       {
         id: 'ar-8', noteName: 'F', octave: 4, staffStep: 8, accidental: null, freq: 349.23,
@@ -509,6 +547,12 @@ const CURRICULUM = {
         prompt: 'Cover thumb + holes 1 through 6. Only hole 7 stays open. Use warm, abundant air for this low, resonant D.'
       },
       {
+        id: 'tn-fs', noteName: 'F#', octave: 3, staffStep: -6, accidental: '\u266F', freq: 185.00,
+        fingeringState: [true, true, true, true, false, true, true, false],
+        description: 'F sharp on the tenor — forked F with half-thumb.',
+        prompt: 'Cover thumb + holes 1, 2, 3, 5, and 6. Warm, steady air for this low sharp.'
+      },
+      {
         id: 'tn-song-2', type: 'song',
         noteName: 'Merrily We Roll Along',
         prerequisiteIds: ['tn-1', 'tn-2', 'tn-3', 'tn-4', 'tn-5'],
@@ -536,6 +580,12 @@ const CURRICULUM = {
         fingeringState: [true, true, true, true, true, false, true, false],
         description: 'F uses a special forked fingering — hole 5 stays open.',
         prompt: 'Cover thumb + holes 1, 2, 3, 4, and 6. Leave holes 5 and 7 open. This forked F fills the gap in your scale.'
+      },
+      {
+        id: 'tn-bb', noteName: 'B\u266D', octave: 3, staffStep: -3, accidental: '\u266D', freq: 233.08,
+        fingeringState: [false, true, true, true, false, false, false, false],
+        description: 'B flat — half-thumb + holes 1, 2, 3. A dark, covered tenor note.',
+        prompt: 'Pinch the thumb hole. Cover holes 1, 2, and 3. Right hand open.'
       },
       {
         id: 'tn-song-4', type: 'song',
@@ -622,6 +672,7 @@ const CURRICULUM = {
   'bass-recorder': {
     id: 'bass-recorder', name: 'Bass Recorder', shortName: 'Bass',
     clef: 'bass', fingeringType: 'recorder', isTransposing: false, available: true, accentColor: 'var(--accent-warm)',
+    splitHoles: [6, 7],
     lessons: [
       {
         id: 'br-1', noteName: 'E', octave: 3, staffStep: 5, accidental: null, freq: 164.81,
@@ -634,6 +685,13 @@ const CURRICULUM = {
         fingeringState: [true, true, true, false, false, false, false, false],
         description: 'D adds your left middle finger.',
         prompt: 'Cover thumb + holes 1 and 2. Relax the embouchure and feel the reed-like vibration of these low notes.'
+      },
+      {
+        id: 'br-fs', noteName: 'F#', octave: 3, staffStep: 6, accidental: '\u266F', freq: 185.00,
+        fingeringState: [true, true, true, true, true, true, true, true],
+        splitHoleState: { 7: 'left' },
+        description: 'F sharp on the bass — thumb + holes 1 through 6 and 7a.',
+        prompt: 'Cover thumb + holes 1 through 6, closing only the upper hole of 7. Big, warm air.'
       },
       {
         id: 'br-3', noteName: 'C', octave: 3, staffStep: 3, accidental: null, freq: 130.81,
@@ -693,6 +751,13 @@ const CURRICULUM = {
         fingeringState: [true, true, true, true, true, true, true, true],
         description: 'F2 — all holes covered. The bottom of the bass recorder.',
         prompt: 'Cover everything: thumb + holes 1 through 7. This is your lowest note. Maximum air, very relaxed embouchure.'
+      },
+      {
+        id: 'br-bb', noteName: 'B\u266D', octave: 2, staffStep: 2, accidental: '\u266D', freq: 116.54,
+        fingeringState: [true, true, true, true, true, false, true, true],
+        splitHoleState: {},
+        description: 'B flat — thumb + holes 1, 2, 3, 4, 6, and 7. Deep and resonant.',
+        prompt: 'Cover thumb + holes 1, 2, 3, 4, 6, and 7. Leave hole 5 open. Maximum air.'
       },
       {
         id: 'br-8', noteName: 'F', octave: 3, staffStep: 6, accidental: null, freq: 174.61,

@@ -1100,7 +1100,7 @@ function renderSprintView(inst) {
       cls += ' text-only';
       content = `<div class="quiz-option-note">${escapeHtml(t(opt.noteName))}</div>`;
     } else {
-      content = `<div class="quiz-option-svg">${Graphics.fingeringSVG(inst.fingeringType, opt.fingeringState, inst.accentColor, 72)}</div>`;
+      content = `<div class="quiz-option-svg">${Graphics.fingeringSVG(inst.fingeringType, opt.fingeringState, inst.accentColor, 72, inst.splitHoles || [], opt.splitHoleState || {})}</div>`;
     }
     return `<div class="${cls}" data-action="sprint-answer" data-id="${opt.id}">${content}</div>`;
   }).join('');
@@ -1495,7 +1495,7 @@ function renderReferenceOverlay() {
   const inst = getInstrument(APP.instrumentId);
   const lesson = getLesson(APP.instrumentId, APP.referenceLessonIndex);
   if (!lesson) return '';
-  const fingeringSvg = Graphics.fingeringSVG(inst.fingeringType, lesson.fingeringState, inst.accentColor, 120);
+  const fingeringSvg = Graphics.fingeringSVG(inst.fingeringType, lesson.fingeringState, inst.accentColor, 120, inst.splitHoles || [], lesson.splitHoleState || {});
   const staffSvg = Graphics.staffSVG({ pos: lesson.staffStep, accidental: lesson.accidental, clef: inst.clef, accentColor: inst.accentColor, width: 120 });
   return `
     <div class="screen active reference-overlay" id="reference-overlay">
@@ -1528,7 +1528,7 @@ function renderReferenceOverlay() {
 function buildTutorialSlides(inst) {
   const firstNote = getNoteLessons(inst.id)[0];
   const noteArt = firstNote
-    ? `<div class="tutorial-visual">${Graphics.fingeringSVG(inst.fingeringType, firstNote.fingeringState, inst.accentColor, 92)}${Graphics.staffSVG({ pos: firstNote.staffStep, accidental: firstNote.accidental, clef: inst.clef, accentColor: inst.accentColor, width: 74 })}</div>`
+    ? `<div class="tutorial-visual">${Graphics.fingeringSVG(inst.fingeringType, firstNote.fingeringState, inst.accentColor, 92, inst.splitHoles || [], firstNote.splitHoleState || {})}${Graphics.staffSVG({ pos: firstNote.staffStep, accidental: firstNote.accidental, clef: inst.clef, accentColor: inst.accentColor, width: 74 })}</div>`
     : '';
   const instrumentArt = `<div class="tutorial-visual tutorial-visual-icon">${Graphics.instrumentIconSVG(inst.id, 96)}</div>`;
   return [
@@ -1622,7 +1622,7 @@ function renderLookupScreen() {
   if (!selected) selected = notes[0];
   APP.lookupId = selected.id;
 
-  const bigFingering = Graphics.fingeringSVG(inst.fingeringType, selected.fingeringState, inst.accentColor, 120);
+  const bigFingering = Graphics.fingeringSVG(inst.fingeringType, selected.fingeringState, inst.accentColor, 120, inst.splitHoles || [], selected.splitHoleState || {});
   const staffSvg = Graphics.staffSVG({ pos: selected.staffStep, accidental: selected.accidental, clef: inst.clef, accentColor: inst.accentColor, width: 130 });
 
   const cards = notes.map(l => {
@@ -1630,7 +1630,7 @@ function renderLookupScreen() {
     const cls = 'lookup-card'
       + (l.id === selected.id ? ' lookup-card-active' : '')
       + (learned ? '' : ' lookup-card-locked');
-    const svg = Graphics.fingeringSVG(inst.fingeringType, l.fingeringState, learned ? inst.accentColor : '#6b6b7d', 46);
+    const svg = Graphics.fingeringSVG(inst.fingeringType, l.fingeringState, learned ? inst.accentColor : '#6b6b7d', 46, inst.splitHoles || [], l.splitHoleState || {});
     return `
       <button class="${cls}" data-action="lookup-select" data-id="${l.id}" aria-label="${escapeHtml(t(l.noteName))}">
         <div class="lookup-card-svg">${svg}</div>
@@ -1918,7 +1918,7 @@ function renderLessonScreen() {
 }
 
 function renderPresentPhase(inst, lesson) {
-  const fingeringSvg = Graphics.fingeringSVG(inst.fingeringType, lesson.fingeringState, inst.accentColor, 84);
+  const fingeringSvg = Graphics.fingeringSVG(inst.fingeringType, lesson.fingeringState, inst.accentColor, 84, inst.splitHoles || [], lesson.splitHoleState || {});
   const staffSvg = Graphics.staffSVG({ pos: lesson.staffStep, accidental: lesson.accidental, clef: inst.clef, accentColor: inst.accentColor, width: 96 });
   const transposeNote = inst.isTransposing && lesson.concertNote
     ? `<div class="note-description">${tFill('Sounds as concert {note} ({key} instrument).', { note: lesson.concertNote, key: inst.transposeSemitones === -9 ? 'E\u266d' : inst.transposeSemitones === -7 ? 'F' : 'B\u266d' })}</div>` : '';
@@ -1989,7 +1989,7 @@ function renderSongPresentPhase(inst, lesson) {
   const isLast = APP.songNoteIndex >= totalNotes - 1;
   const playback = APP.songPlayback || { active: false, finished: false };
 
-  const fingeringSvg = Graphics.fingeringSVG(inst.fingeringType, note.fingeringState, inst.accentColor, 84);
+  const fingeringSvg = Graphics.fingeringSVG(inst.fingeringType, note.fingeringState, inst.accentColor, 84, inst.splitHoles || [], note.splitHoleState || {});
   const staffSvg = Graphics.staffSVG({ pos: note.staffStep, accidental: note.accidental, clef: inst.clef, accentColor: inst.accentColor, width: 96 });
 
   const melodyNotes = [];
@@ -2144,7 +2144,7 @@ function renderQuizPhase(inst, lesson) {
   // ── PROMPT ──
   let promptHtml = '';
   if (q.quizType === QUIZ_TYPES.FINGERING_TO_NOTE) {
-    promptHtml = `<div class="quiz-prompt-svg">${Graphics.fingeringSVG(inst.fingeringType, q.prompt.fingeringState, inst.accentColor, 100)}</div>`;
+    promptHtml = `<div class="quiz-prompt-svg">${Graphics.fingeringSVG(inst.fingeringType, q.prompt.fingeringState, inst.accentColor, 100, inst.splitHoles || [], (q.prompt && q.prompt.splitHoleState) || {})}</div>`;
   } else if (q.quizType === QUIZ_TYPES.NOTE_TO_FINGERING) {
     promptHtml = `<div class="quiz-prompt-note">${escapeHtml(t(q.prompt.noteName))}</div>`;
   } else if (q.quizType === QUIZ_TYPES.STAFF_TO_NOTE) {
@@ -2168,7 +2168,7 @@ function renderQuizPhase(inst, lesson) {
       cls += ' text-only';
       content = `<div class="quiz-option-note">${escapeHtml(t(opt.noteName))}</div>`;
     } else if (q.quizType === QUIZ_TYPES.NOTE_TO_FINGERING) {
-      content = `<div class="quiz-option-svg">${Graphics.fingeringSVG(inst.fingeringType, opt.fingeringState, inst.accentColor, 72)}</div>`;
+      content = `<div class="quiz-option-svg">${Graphics.fingeringSVG(inst.fingeringType, opt.fingeringState, inst.accentColor, 72, inst.splitHoles || [], opt.splitHoleState || {})}</div>`;
     } else if (q.quizType === QUIZ_TYPES.STAFF_TO_NOTE) {
       cls += ' text-only';
       content = `<div class="quiz-option-note">${escapeHtml(t(opt.noteName))}</div>`;
@@ -2231,7 +2231,7 @@ function renderRecordPanel(lesson) {
 }
 
 function renderPlayPhase(inst, lesson) {
-  const fingeringSvg = Graphics.fingeringSVG(inst.fingeringType, lesson.fingeringState, inst.accentColor, 120);
+  const fingeringSvg = Graphics.fingeringSVG(inst.fingeringType, lesson.fingeringState, inst.accentColor, 120, inst.splitHoles || [], lesson.splitHoleState || {});
   const cells = [1, 2, 3, 4].map(n => `<div class="beat-cell count-in" data-beat="${n}"><span class="beat-num">${n}</span></div>`).join('');
   const playCell = `<div class="beat-cell" data-beat="play">♪</div>`;
   const metActive = APP.metronome ? APP.metronome.running : false;
