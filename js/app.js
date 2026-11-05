@@ -2677,14 +2677,16 @@ function runSongPlayback(inst, lesson) {
   // The song's own written tempo — the base the practice-speed multiplier scales.
   var baseBpm = accompData && accompData.bpm ? accompData.bpm : (lesson.bpm || 100);
   var spbMs = msPerBeatAt(baseBpm, APP.songSpeed); // ms per beat; count-in and notes share it
+  // Piano accompaniment is now synthesized from the song's pianoChords data
+  // (no audio file needed).
+  var hasPianoChords = Array.isArray(lesson.pianoChords) && lesson.pianoChords.length > 0;
+  var hasAccomp = hasPianoChords;
 
   APP.songPlayback = { active: true, index: -1, timer: null, finished: false, baseBpm: baseBpm };
   if (APP.songPlayback.timer) clearTimeout(APP.songPlayback.timer);
 
   const container = document.getElementById('song-score-container');
   const accentColor = inst.accentColor;
-
-  var hasAccomp = !!accompData;
 
   // Stop any previous accompaniment
   if (APP.accompSource) {
@@ -2800,10 +2802,24 @@ function runSongPlayback(inst, lesson) {
     }
     APP._countInOverlay = overlay;
 
-    // Schedule accompaniment to start right after count-in
+    // Schedule accompaniment to start right after count-in. Piano chords are
+    // synthesized from the song's pianoChords data (no audio file needed).
     var audioStart = c.currentTime + countInMs / 1000 + 0.05;
-    if (accompBuffer) {
-      APP.accompSource = AudioEngine.playBuffer(accompBuffer, rate, audioStart);
+    APP.accompNodes = [];
+    if (hasPianoChords) {
+      var chords = lesson.pianoChords;
+      var nodes = APP.accompNodes;
+      APP.accompSource = { stop: function() { nodes.forEach(function(n) { try { n.stop(); } catch (e) {} }); nodes.length = 0; } };
+      for (var ci = 0; ci < notes.length; ci++) {
+        var chord = chords[ci] || chords[chords.length - 1];
+        var freqs = AudioEngine.chordToFreqs(chord);
+        var t = audioStart + noteStarts[ci] * spbMs / 1000;
+        var dur = Math.max(beatDurs[ci] * spbMs / 1000, 0.2);
+        var handle = AudioEngine.playPianoChord(freqs, dur, t);
+        if (handle) nodes.push(handle);
+      }
+    } else {
+      APP.accompSource = null;
     }
 
     // Count-in: visual beats + metronome clicks (use captured spbMs)
@@ -2829,14 +2845,7 @@ function runSongPlayback(inst, lesson) {
     }, countInMs + 50);
   }
 
-  if (hasAccomp) {
-    AudioEngine.fetchAndDecode(accompData.url, function(buf) {
-      if (!buf) showToast(t('Accompaniment unavailable offline.'));
-      kickoff(buf);
-    });
-  } else {
-    kickoff(null);
-  }
+  kickoff(null);
 }
 
 function importSongFromMusicXML(xmlString, instrumentId) {
@@ -3245,7 +3254,7 @@ function handleAction(action, el) {
       setSavedSpeed(APP.songSpeed);
       // A live accompaniment retimes in place, keeping its pitch; otherwise the
       // readout is refreshed by a re-render.
-      if (APP.accompSource && APP.songPlayback) {
+      if (APP.accompSource && APP.accompSource.playbackRate && APP.songPlayback) {
         const ctx = AudioEngine.getContext();
         const recordedBPM = APP.songPlayback.recordedBPM || 100;
         const rate = (APP.songPlayback.baseBpm * APP.songSpeed) / recordedBPM;
@@ -3419,6 +3428,8 @@ function handleAction(action, el) {
 
     case 'finish-lesson':
       cleanupRecording();
+      if (APP.accompSource) { try { APP.accompSource.stop(); } catch(e) {} APP.accompSource = null; }
+      APP.accompNodes = [];
       APP.reviewQueue = null;
       APP.reviewIndex = 0;
       APP.reviewCorrect = 0;

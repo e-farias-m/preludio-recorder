@@ -159,27 +159,37 @@ const AudioEngine = (() => {
 
   // ── PIANO CHORD ─────────────────────────────────────────────────────────
   // FM synthesis piano — carrier + modulator creates bell/piano-like tone.
-  function playPianoChord(freqs, duration = 1.1) {
+  // A shared reverb buffer keeps the per-chord cost low.
+  var _reverbBuf = null;
+  function getReverbBuf() {
     const c = getCtx();
-    const t0 = c.currentTime + 0.003;
-    const out = c.createGain();
-    out.connect(c.destination);
-
-    const reverb = c.createConvolver();
-    const reverbLen = c.sampleRate * 0.8;
-    const reverbBuf = c.createBuffer(2, reverbLen, c.sampleRate);
+    if (_reverbBuf && _reverbBuf.sampleRate === c.sampleRate) return _reverbBuf;
+    const reverbLen = Math.floor(c.sampleRate * 0.8);
+    const buf = c.createBuffer(2, reverbLen, c.sampleRate);
     for (var ch = 0; ch < 2; ch++) {
-      var chData = reverbBuf.getChannelData(ch);
+      var chData = buf.getChannelData(ch);
       for (var i = 0; i < reverbLen; i++) {
         chData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (c.sampleRate * 0.15));
       }
     }
-    reverb.buffer = reverbBuf;
+    _reverbBuf = buf;
+    return buf;
+  }
+
+  function playPianoChord(freqs, duration = 1.1, when = 0) {
+    const c = getCtx();
+    const t0 = (when > 0 ? when : c.currentTime) + 0.003;
+    const out = c.createGain();
+    out.connect(c.destination);
+
+    const reverb = c.createConvolver();
+    reverb.buffer = getReverbBuf();
     var reverbMix = c.createGain();
     reverbMix.gain.value = 0.15;
     out.connect(reverb);
     reverb.connect(reverbMix).connect(c.destination);
 
+    const sources = [];
     freqs.forEach(function(freq, fi) {
       var arpDelay = 0.055 * fi;
       var t1 = t0 + arpDelay;
@@ -212,8 +222,52 @@ const AudioEngine = (() => {
       carr.stop(t1 + noteDur + 0.1);
       mod.start(t1);
       mod.stop(t1 + noteDur + 0.1);
+      sources.push(carr, mod);
     });
+
+    return { stop: function() { sources.forEach(function(s) { try { s.stop(); } catch (e) {} }); } };
   }
+
+  // ── CHORD SYMBOL -> FREQUENCIES ─────────────────────────────────────────
+  // Parses a simple chord symbol (e.g. 'G', 'D7', 'Am', 'G/B') into MIDI
+  // note numbers, then converts to Hz. Used to synthesize piano accompaniment.
+  function chordToMidi(chord) {
+    if (!chord || typeof chord !== 'string') return [60];
+    const slash = chord.indexOf('/');
+    let bass = null, main = chord;
+    if (slash !== -1) { bass = chord.slice(slash + 1).trim(); main = chord.slice(0, slash).trim(); }
+    const m = main.match(/^([A-G])([#b]?)(.*)$/);
+    if (!m) return [60];
+    const rootLetter = m[1];
+    const rootAcc = m[2] || '';
+    const quality = m[3] || '';
+    const pcMap = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
+    const rootPc = (pcMap[rootLetter] || 0) + (rootAcc === '#' ? 1 : (rootAcc === 'b' ? -1 : 0));
+    const rootMidi = 48 + rootPc; // octave 3
+    const isMinor = quality.startsWith('m') && !quality.startsWith('maj');
+    const isDim = quality.startsWith('dim') || quality.startsWith('\u00b0');
+    const isAug = quality.startsWith('aug') || quality.startsWith('+');
+    const isSus = quality.startsWith('sus');
+    const has7 = quality.indexOf('7') !== -1;
+    const isMaj7 = quality.indexOf('maj7') !== -1 || quality.indexOf('M7') !== -1;
+    let offsets = [0, 4, 7];
+    if (isMinor) offsets = [0, 3, 7];
+    if (isDim) offsets = [0, 3, 6];
+    if (isAug) offsets = [0, 4, 8];
+    if (isSus) offsets = [0, 5, 7];
+    if (has7) offsets.push(isMaj7 ? 11 : 10);
+    const tones = offsets.map(o => rootMidi + o);
+    if (bass) {
+      const bm = bass.match(/^([A-G])([#b]?)/);
+      if (bm) {
+        const bassPc = (pcMap[bm[1]] || 0) + (bm[2] === '#' ? 1 : (bm[2] === 'b' ? -1 : 0));
+        tones.unshift(36 + bassPc); // octave 2
+      }
+    }
+    return tones.map(mid => 440 * Math.pow(2, (mid - 69) / 12));
+  }
+
+  function chordToFreqs(chord) { return chordToMidi(chord); }
 
   // ── DECODED AUDIO PLAYBACK (for MP3 accompaniment) ─────────────────────
   // Loads an MP3/audio file once, caches the decoded buffer, and plays
@@ -276,5 +330,5 @@ const AudioEngine = (() => {
     startSilentBuffer();
   }
 
-  return { playInstrumentNote, playInstrumentChord, playPianoChord, playClick, unlock, fetchAndDecode, playBuffer, getContext };
+  return { playInstrumentNote, playInstrumentChord, playPianoChord, chordToFreqs, playClick, unlock, fetchAndDecode, playBuffer, getContext };
 })();

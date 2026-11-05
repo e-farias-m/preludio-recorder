@@ -1,4 +1,4 @@
-const CACHE = 'preludio-v57';
+const CACHE = 'preludio-v58';
 const FILES = [
   './',
   './index.html',
@@ -14,7 +14,6 @@ const FILES = [
   './js/curriculum.js',
   './js/graphics.js',
   './js/i18n.js',
-  './audio/hcb-piano.mp3',
 ];
 
 self.addEventListener('install', e => {
