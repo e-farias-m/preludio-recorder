@@ -176,18 +176,20 @@ const AudioEngine = (() => {
     return buf;
   }
 
-  function playPianoChord(freqs, duration = 1.1, when = 0) {
+  function playPianoChord(freqs, duration = 1.1, when = 0, gainScale = 1, reverb = true) {
     const c = getCtx();
     const t0 = (when > 0 ? when : c.currentTime) + 0.003;
     const out = c.createGain();
     out.connect(c.destination);
 
-    const reverb = c.createConvolver();
-    reverb.buffer = getReverbBuf();
-    var reverbMix = c.createGain();
-    reverbMix.gain.value = 0.15;
-    out.connect(reverb);
-    reverb.connect(reverbMix).connect(c.destination);
+    if (reverb) {
+      const rv = c.createConvolver();
+      rv.buffer = getReverbBuf();
+      var reverbMix = c.createGain();
+      reverbMix.gain.value = 0.15;
+      out.connect(rv);
+      rv.connect(reverbMix).connect(c.destination);
+    }
 
     const sources = [];
     freqs.forEach(function(freq, fi) {
@@ -209,12 +211,15 @@ const AudioEngine = (() => {
       mod.connect(modGain);
       modGain.connect(carr.frequency);
 
+      var peak = (0.35 / freqs.length) * gainScale;
+      var mid = (0.10 / freqs.length) * gainScale;
+      var tail = (0.04 / freqs.length) * gainScale;
       var g = c.createGain();
       g.gain.setValueAtTime(0.0001, t1);
-      g.gain.exponentialRampToValueAtTime(0.35 / freqs.length, t1 + 0.002);
-      g.gain.exponentialRampToValueAtTime(0.10 / freqs.length, t1 + 0.12);
-      g.gain.exponentialRampToValueAtTime(0.04 / freqs.length, t1 + 0.5);
-      g.gain.setValueAtTime(0.04 / freqs.length, t1 + noteDur - 0.05);
+      g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0001), t1 + 0.002);
+      g.gain.exponentialRampToValueAtTime(Math.max(mid, 0.0001), t1 + 0.12);
+      g.gain.exponentialRampToValueAtTime(Math.max(tail, 0.0001), t1 + 0.5);
+      g.gain.setValueAtTime(Math.max(tail, 0.0001), t1 + noteDur - 0.05);
       g.gain.exponentialRampToValueAtTime(0.0001, t1 + noteDur + 0.05);
 
       carr.connect(g).connect(out);

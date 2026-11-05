@@ -2805,18 +2805,40 @@ function runSongPlayback(inst, lesson) {
     // Schedule accompaniment to start right after count-in. Piano chords are
     // synthesized from the song's pianoChords data (no audio file needed).
     var audioStart = c.currentTime + countInMs / 1000 + 0.05;
+    // Schedule accompaniment to start right after count-in. Piano plays the
+    // melody line plus a light Alberti bass (root-5th-3rd-5th) underneath.
     APP.accompNodes = [];
     if (hasPianoChords) {
       var chords = lesson.pianoChords;
       var nodes = APP.accompNodes;
       APP.accompSource = { stop: function() { nodes.forEach(function(n) { try { n.stop(); } catch (e) {} }); nodes.length = 0; } };
+      var eighth = spbMs / 2 / 1000; // seconds per eighth note
       for (var ci = 0; ci < notes.length; ci++) {
         var chord = chords[ci] || chords[chords.length - 1];
         var freqs = AudioEngine.chordToFreqs(chord);
+        var root = freqs[0];
+        var third = freqs.length > 1 ? freqs[1] : root;
+        var fifth = freqs.length > 2 ? freqs[2] : root;
+        // Alberti pattern in a lower octave: root, 5th, 3rd, 5th
+        var bassRoot = root / 2;
+        var bassThird = third / 2;
+        var bassFifth = fifth / 2;
+        var pattern = [bassRoot, bassFifth, bassThird, bassFifth];
+
         var t = audioStart + noteStarts[ci] * spbMs / 1000;
         var dur = Math.max(beatDurs[ci] * spbMs / 1000, 0.2);
-        var handle = AudioEngine.playPianoChord(freqs, dur, t);
-        if (handle) nodes.push(handle);
+        var melodyFreq = notes[ci].freq;
+        // Melody note (full piano tone, with reverb)
+        var mh = AudioEngine.playPianoChord([melodyFreq], dur, t, 1.0, true);
+        if (mh) nodes.push(mh);
+        // Alberti bass: eighth-note broken chords, lighter and dry
+        var numEighths = Math.max(1, Math.round(dur / eighth));
+        for (var ei = 0; ei < numEighths; ei++) {
+          var et = t + ei * eighth;
+          var efreq = pattern[ei % 4];
+          var eh = AudioEngine.playPianoChord([efreq], eighth * 0.85, et, 0.5, false);
+          if (eh) nodes.push(eh);
+        }
       }
     } else {
       APP.accompSource = null;
