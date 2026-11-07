@@ -1107,4 +1107,7 @@ Object.assign(TRANSLATIONS.pt, {
   "Student": "Aluno",
   "Watch yourself grow": "Veja-se crescer",
   "Shaky — needs review": "Instável — precisa revisar",
+  "Welcome!": "Bem-vindo!",
 });
+const FR_WELCOME = { "Welcome!": "Bienvenue !" };
+Object.assign(TRANSLATIONS.fr, FR_WELCOME);
