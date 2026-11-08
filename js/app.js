@@ -723,9 +723,12 @@ function getLesson(instrumentId, index) {
 function matchNoteToLesson(instrumentId, noteName, octave) {
   const inst = getInstrument(instrumentId);
   const searchName = noteName.replace(/♭/g, 'b').replace(/♯/g, '#');
+  // Strip any "Low "/ "High " qualifier from lesson names (added for
+  // duplicate note names across octaves) before comparing.
+  const stripQualifier = n => n.replace(/^(Low|High)\s+/i, '');
   const lesson = inst.lessons.find(l => {
     if (l.type) return false;
-    const lName = l.noteName.replace(/♭/g, 'b').replace(/♯/g, '#');
+    const lName = stripQualifier(l.noteName.replace(/♭/g, 'b').replace(/♯/g, '#'));
     return lName === searchName && l.octave === octave;
   });
   return lesson ? lesson.id : null;

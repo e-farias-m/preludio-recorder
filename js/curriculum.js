@@ -53,7 +53,7 @@ const CURRICULUM = {
       },
       {
         id: 'sr-3',
-        noteName: 'G',
+        noteName: 'Low G',
         octave: 5,
         staffStep: 2,
         accidental: null,
@@ -85,7 +85,7 @@ const CURRICULUM = {
       },
       {
         id: 'sr-4',
-        noteName: 'E',
+        noteName: 'Low E',
         octave: 5,
         staffStep: 0,
         accidental: null,
@@ -107,7 +107,7 @@ const CURRICULUM = {
       },
       {
         id: 'sr-5',
-        noteName: 'D',
+        noteName: 'Low D',
         octave: 5,
         staffStep: -1,
         accidental: null,
@@ -123,6 +123,28 @@ const CURRICULUM = {
         prompt: 'Cover thumb + holes 1, 2, 3, 5, and 6. Leave holes 4 and 7 open. Half-thumb for this sharp F.'
       },
       {
+        id: 'sr-cs',
+        noteName: 'Low C#',
+        octave: 5,
+        staffStep: -2,
+        accidental: '\u266F',
+        freq: 554.37,
+        fingeringState: [false, true, true, false, false, false, false, false],
+        description: 'C sharp — holes 1 and 2, thumb open. A bright, focused tone.',
+        prompt: 'Cover holes 1 and 2 only. Thumb stays open. Blow a steady, focused stream of air.'
+      },
+      {
+        id: 'sr-csh',
+        noteName: 'High C#',
+        octave: 6,
+        staffStep: 5,
+        accidental: '\u266F',
+        freq: 1108.73,
+        fingeringState: [false, true, true, false, true, false, false, false],
+        description: 'High C sharp — half-thumb plus holes 1, 2, and 4.',
+        prompt: 'Pinch the thumb hole. Cover holes 1, 2, and 4. Fast, focused air for this high sharp.'
+      },
+      {
         id: 'sr-review-1',
         type: 'review',
         reviewLessonIds: ['sr-1', 'sr-2', 'sr-3', 'sr-4', 'sr-5'],
@@ -132,7 +154,7 @@ const CURRICULUM = {
       },
       {
         id: 'sr-6',
-        noteName: 'C',
+        noteName: 'Low C',
         octave: 5,
         staffStep: -2,
         accidental: null,
@@ -143,7 +165,7 @@ const CURRICULUM = {
       },
       {
         id: 'sr-7',
-        noteName: 'F',
+        noteName: 'Low F',
         octave: 5,
         staffStep: 1,
         accidental: null,
@@ -190,7 +212,7 @@ const CURRICULUM = {
       },
       {
         id: 'sr-8',
-        noteName: 'C',
+        noteName: 'High C',
         octave: 6,
         staffStep: 5,
         accidental: null,
@@ -202,9 +224,9 @@ const CURRICULUM = {
       {
         id: 'sr-review-2',
         type: 'review',
-        reviewLessonIds: ['sr-5', 'sr-6', 'sr-7', 'sr-8'],
+        reviewLessonIds: ['sr-5', 'sr-6', 'sr-7', 'sr-8', 'sr-cs', 'sr-csh'],
         noteName: 'Review 2',
-        description: 'Solidify D, C, F, and high C together.',
+        description: 'Solidify D, C, F, high C, and C sharp together.',
         prompt: '',
       },
       {
@@ -254,7 +276,7 @@ const CURRICULUM = {
       },
       {
         id: 'sr-9',
-        noteName: 'D',
+        noteName: 'High D',
         octave: 6,
         staffStep: 6,
         accidental: null,
@@ -265,7 +287,7 @@ const CURRICULUM = {
       },
       {
         id: 'sr-10',
-        noteName: 'E',
+        noteName: 'High E',
         octave: 6,
         staffStep: 7,
         accidental: null,
@@ -276,7 +298,7 @@ const CURRICULUM = {
       },
       {
         id: 'sr-11',
-        noteName: 'F',
+        noteName: 'High F',
         octave: 6,
         staffStep: 8,
         accidental: null,
@@ -287,7 +309,7 @@ const CURRICULUM = {
       },
       {
         id: 'sr-12',
-        noteName: 'G',
+        noteName: 'High G',
         octave: 6,
         staffStep: 9,
         accidental: null,
@@ -314,13 +336,13 @@ const CURRICULUM = {
     splitHoles: [6, 7],
     lessons: [
       {
-        id: 'ar-1', noteName: 'E', octave: 4, staffStep: 7, accidental: null, freq: 329.63,
+        id: 'ar-1', noteName: 'Low E', octave: 4, staffStep: 7, accidental: null, freq: 329.63,
         fingeringState: [true, true, false, false, false, false, false, false],
         description: 'First alto note — just thumb and index. A bright, clear E.',
         prompt: 'Left thumb covers the back hole. Left index finger covers hole 1. Blow gently and evenly.'
       },
       {
-        id: 'ar-2', noteName: 'D', octave: 4, staffStep: 6, accidental: null, freq: 293.66,
+        id: 'ar-2', noteName: 'Low D', octave: 4, staffStep: 6, accidental: null, freq: 293.66,
         fingeringState: [true, true, true, false, false, false, false, false],
         description: 'Add your left middle finger — now playing D.',
         prompt: 'Cover thumb + holes 1 and 2. Keep the air steady and listen for a warm, centered pitch.'
@@ -333,7 +355,7 @@ const CURRICULUM = {
         prompt: 'Cover thumb + holes 1 through 6, closing only the upper hole of 7. Fast, focused air.'
       },
       {
-        id: 'ar-3', noteName: 'C', octave: 4, staffStep: 5, accidental: null, freq: 261.63,
+        id: 'ar-3', noteName: 'Low C', octave: 4, staffStep: 5, accidental: null, freq: 261.63,
         fingeringState: [true, true, true, true, false, false, false, false],
         description: 'C adds your left ring finger. Three fingers down.',
         prompt: 'Cover thumb + holes 1, 2, and 3. Right hand stays relaxed and open. This is middle C on the alto.'
@@ -350,13 +372,13 @@ const CURRICULUM = {
         pianoChords: ['G','D7','G','G','D7','G','G','G','G/B','G/B','Am','Am','G/B','C','G','D7','G'],
       },
       {
-        id: 'ar-4', noteName: 'B', octave: 3, staffStep: 4, accidental: null, freq: 246.94,
+        id: 'ar-4', noteName: 'Low B', octave: 3, staffStep: 4, accidental: null, freq: 246.94,
         fingeringState: [true, true, true, true, true, false, false, false],
         description: 'B adds the fourth finger. A warm, woody tone.',
         prompt: 'Cover thumb + holes 1, 2, 3, and 4. Hole 5 stays open (forked B). Listen for the dark, covered sound.'
       },
       {
-        id: 'ar-5', noteName: 'A', octave: 3, staffStep: 3, accidental: null, freq: 220.00,
+        id: 'ar-5', noteName: 'Low A', octave: 3, staffStep: 3, accidental: null, freq: 220.00,
         fingeringState: [true, true, true, true, true, true, false, false],
         description: 'A uses both hands now — thumb through hole 5.',
         prompt: 'Cover thumb + holes 1 through 5. Holes 6 and 7 stay open. Left and right hands working together for this lower note.'
@@ -372,7 +394,7 @@ const CURRICULUM = {
         durations: ['q', 'q', 'q', 'q', 'q', 'q', 'h', 'q', 'q', 'h', 'q', 'q', 'h', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'w'],
       },
       {
-        id: 'ar-6', noteName: 'G', octave: 3, staffStep: 2, accidental: null, freq: 196.00,
+        id: 'ar-6', noteName: 'Low G', octave: 3, staffStep: 2, accidental: null, freq: 196.00,
         fingeringState: [true, true, true, true, true, true, true, false],
         description: 'G adds hole 6 — a rich, resonant note.',
         prompt: 'Cover thumb + holes 1 through 6. Only hole 7 stays open. Blow gently with warm, supported air.'
@@ -385,7 +407,7 @@ const CURRICULUM = {
         prompt: '',
       },
       {
-        id: 'ar-7', noteName: 'F', octave: 3, staffStep: 1, accidental: null, freq: 174.61,
+        id: 'ar-7', noteName: 'Low F', octave: 3, staffStep: 1, accidental: null, freq: 174.61,
         fingeringState: [true, true, true, true, true, true, true, true],
         description: 'F — all holes covered. The bottom of the alto\'s range.',
         prompt: 'Cover everything: thumb + holes 1 through 7. Big, warm air for this deep, dark F.'
@@ -398,7 +420,7 @@ const CURRICULUM = {
         prompt: 'Cover thumb + holes 1, 2, 3, 4, 6, and 7. Leave hole 5 open.'
       },
       {
-        id: 'ar-8', noteName: 'F', octave: 4, staffStep: 8, accidental: null, freq: 349.23,
+        id: 'ar-8', noteName: 'High F', octave: 4, staffStep: 8, accidental: null, freq: 349.23,
         fingeringState: [false, true, true, true, true, true, true, true],
         description: 'Upper F — your first half-thumb note.',
         prompt: 'Pinch the thumb hole partially open. Keep all other holes covered. Fast, focused air for this upper F.'
@@ -414,13 +436,13 @@ const CURRICULUM = {
         durations: [1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 4, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 4],
       },
       {
-        id: 'ar-9', noteName: 'G', octave: 4, staffStep: 9, accidental: null, freq: 392.00,
+        id: 'ar-9', noteName: 'High G', octave: 4, staffStep: 9, accidental: null, freq: 392.00,
         fingeringState: [false, true, true, true, true, true, true, false],
         description: 'Upper G — half-thumb + holes 1 through 6.',
         prompt: 'Half-thumb + holes 1 through 6. Same fingering as G3 but with the thumb pinched open.'
       },
       {
-        id: 'ar-10', noteName: 'A', octave: 4, staffStep: 10, accidental: null, freq: 440.00,
+        id: 'ar-10', noteName: 'High A', octave: 4, staffStep: 10, accidental: null, freq: 440.00,
         fingeringState: [false, true, true, true, true, true, false, false],
         description: 'Upper A — half-thumb + holes 1 through 5.',
         prompt: 'Half-thumb + holes 1 through 5. Keep your air fast and steady for this bright upper A.'
@@ -446,7 +468,7 @@ const CURRICULUM = {
         timeSig: { num: 6, den: 8 },
       },
       {
-        id: 'ar-11', noteName: 'B', octave: 4, staffStep: 11, accidental: null, freq: 493.88,
+        id: 'ar-11', noteName: 'High B', octave: 4, staffStep: 11, accidental: null, freq: 493.88,
         fingeringState: [false, true, true, true, true, false, false, false],
         description: 'Upper B — half-thumb + holes 1 through 4.',
         prompt: 'Half-thumb + holes 1, 2, 3, 4. Hole 5 stays open (forked). Bright and focused.'
@@ -459,7 +481,7 @@ const CURRICULUM = {
         prompt: '',
       },
       {
-        id: 'ar-12', noteName: 'C', octave: 5, staffStep: 12, accidental: null, freq: 523.25,
+        id: 'ar-12', noteName: 'High C', octave: 5, staffStep: 12, accidental: null, freq: 523.25,
         fingeringState: [false, true, true, true, false, false, false, false],
         description: 'Upper C — half-thumb + holes 1, 2, 3.',
         prompt: 'Half-thumb + holes 1, 2, 3. Right hand off completely. Clean, clear air for this high C.'
@@ -484,13 +506,13 @@ const CURRICULUM = {
         gaps: [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
       },
       {
-        id: 'ar-13', noteName: 'D', octave: 5, staffStep: 13, accidental: null, freq: 587.33,
+        id: 'ar-13', noteName: 'High D', octave: 5, staffStep: 13, accidental: null, freq: 587.33,
         fingeringState: [false, true, true, false, false, false, false, false],
         description: 'Upper D — half-thumb + holes 1, 2.',
         prompt: 'Half-thumb + holes 1 and 2. The air needs to be fast and focused for these higher notes.'
       },
       {
-        id: 'ar-14', noteName: 'E', octave: 5, staffStep: 14, accidental: null, freq: 659.25,
+        id: 'ar-14', noteName: 'High E', octave: 5, staffStep: 14, accidental: null, freq: 659.25,
         fingeringState: [false, true, false, false, false, false, false, false],
         description: 'Upper E — half-thumb + hole 1. Highest note so far.',
         prompt: 'Half-thumb + hole 1 only. Maximum air speed with a relaxed embouchure for this sparkling high E.'
@@ -556,7 +578,7 @@ const CURRICULUM = {
         prompt: 'Cover thumb + holes 1 and 2. Relax your embouchure and let the air flow freely.'
       },
       {
-        id: 'tn-3', noteName: 'G', octave: 3, staffStep: 2, accidental: null, freq: 196.00,
+        id: 'tn-3', noteName: 'Low G', octave: 3, staffStep: 2, accidental: null, freq: 196.00,
         fingeringState: [true, true, true, true, false, false, false, false],
         description: 'G uses all three left-hand fingers.',
         prompt: 'Cover thumb + holes 1, 2, 3. Right hand stays open. Support the breath from your diaphragm.'
@@ -573,13 +595,13 @@ const CURRICULUM = {
         pianoChords: ['G','D7','G','G','D7','G','G','G','G/B','G/B','Am','Am','G/B','C','G','D7','G'],
       },
       {
-        id: 'tn-4', noteName: 'E', octave: 3, staffStep: 0, accidental: null, freq: 164.81,
+        id: 'tn-4', noteName: 'Low E', octave: 3, staffStep: 0, accidental: null, freq: 164.81,
         fingeringState: [true, true, true, true, true, true, false, false],
         description: 'E uses both hands on this larger instrument.',
         prompt: 'Cover thumb + holes 1 through 5. Holes 6 and 7 stay open. The tenor E has a rich, reedy quality.'
       },
       {
-        id: 'tn-5', noteName: 'D', octave: 3, staffStep: -1, accidental: null, freq: 146.83,
+        id: 'tn-5', noteName: 'Low D', octave: 3, staffStep: -1, accidental: null, freq: 146.83,
         fingeringState: [true, true, true, true, true, true, true, false],
         description: 'D — almost all covered. Your lowest tenor note yet.',
         prompt: 'Cover thumb + holes 1 through 6. Only hole 7 stays open. Use warm, abundant air for this low, resonant D.'
@@ -601,6 +623,28 @@ const CURRICULUM = {
         durations: ['q', 'q', 'q', 'q', 'q', 'q', 'h', 'q', 'q', 'h', 'q', 'q', 'h', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'w'],
       },
       {
+        id: 'tn-cs',
+        noteName: 'Low C#',
+        octave: 3,
+        staffStep: -2,
+        accidental: '\u266F',
+        freq: 138.59,
+        fingeringState: [false, true, true, false, false, false, false, false],
+        description: 'Low C sharp on the tenor — holes 1 and 2, thumb open.',
+        prompt: 'Cover holes 1 and 2 only. Thumb stays open. A warm, steady stream of air.'
+      },
+      {
+        id: 'tn-csh',
+        noteName: 'High C#',
+        octave: 4,
+        staffStep: 5,
+        accidental: '\u266F',
+        freq: 277.18,
+        fingeringState: [false, true, true, false, true, false, false, false],
+        description: 'High C sharp on the tenor — half-thumb plus holes 1, 2, and 4.',
+        prompt: 'Pinch the thumb hole. Cover holes 1, 2, and 4. Focused air for this sharp.'
+      },
+      {
         id: 'tn-review-1', type: 'review',
         reviewLessonIds: ['tn-1', 'tn-2', 'tn-3', 'tn-4', 'tn-5'],
         noteName: 'Review 1',
@@ -608,13 +652,13 @@ const CURRICULUM = {
         prompt: '',
       },
       {
-        id: 'tn-6', noteName: 'C', octave: 3, staffStep: -2, accidental: null, freq: 130.81,
+        id: 'tn-6', noteName: 'Low C', octave: 3, staffStep: -2, accidental: null, freq: 130.81,
         fingeringState: [true, true, true, true, true, true, true, true],
         description: 'C — all holes covered. The bottom of the tenor\'s range.',
         prompt: 'Cover everything: thumb + holes 1 through 7. This low C needs maximum air support. Deep breath!'
       },
       {
-        id: 'tn-7', noteName: 'F', octave: 3, staffStep: 1, accidental: null, freq: 174.61,
+        id: 'tn-7', noteName: 'Low F', octave: 3, staffStep: 1, accidental: null, freq: 174.61,
         fingeringState: [true, true, true, true, true, false, true, false],
         description: 'F uses a special forked fingering — hole 5 stays open.',
         prompt: 'Cover thumb + holes 1, 2, 3, 4, and 6. Leave holes 5 and 7 open. This forked F fills the gap in your scale.'
@@ -646,7 +690,7 @@ const CURRICULUM = {
         timeSig: { num: 6, den: 8 },
       },
       {
-        id: 'tn-8', noteName: 'C', octave: 4, staffStep: 5, accidental: null, freq: 261.63,
+        id: 'tn-8', noteName: 'High C', octave: 4, staffStep: 5, accidental: null, freq: 261.63,
         fingeringState: [false, false, true, false, false, false, false, false],
         description: 'Your first half-thumb note! Middle C on the tenor.',
         prompt: 'Partially open the thumb hole (pinch). Cover only hole 3. Fast, focused air for this clear middle C.'
@@ -681,32 +725,32 @@ const CURRICULUM = {
         durations: [1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 4, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 4],
       },
       {
-        id: 'tn-9', noteName: 'D', octave: 4, staffStep: 6, accidental: null, freq: 293.66,
+        id: 'tn-9', noteName: 'High D', octave: 4, staffStep: 6, accidental: null, freq: 293.66,
         fingeringState: [false, true, true, true, true, true, true, false],
         description: 'Upper D — half-thumb + holes 1 through 6.',
         prompt: 'Half-thumb + holes 1 through 6. Same fingers as D3 but with the thumb pinched open. Warm, round sound.'
       },
       {
-        id: 'tn-10', noteName: 'E', octave: 4, staffStep: 7, accidental: null, freq: 329.63,
+        id: 'tn-10', noteName: 'High E', octave: 4, staffStep: 7, accidental: null, freq: 329.63,
         fingeringState: [false, true, true, true, true, true, false, false],
         description: 'Upper E — half-thumb + holes 1 through 5.',
         prompt: 'Half-thumb + holes 1 through 5. Keep your air stream steady and fast for this bright E.'
       },
       {
         id: 'tn-review-2', type: 'review',
-        reviewLessonIds: ['tn-6', 'tn-7', 'tn-8', 'tn-9', 'tn-10'],
+        reviewLessonIds: ['tn-6', 'tn-7', 'tn-8', 'tn-9', 'tn-10', 'tn-cs', 'tn-csh'],
         noteName: 'Review 2',
-        description: 'Solidify low C, forked F, and your first upper register notes.',
+        description: 'Solidify low C, forked F, C sharp, and your first upper register notes.',
         prompt: '',
       },
       {
-        id: 'tn-11', noteName: 'F', octave: 4, staffStep: 8, accidental: null, freq: 349.23,
+        id: 'tn-11', noteName: 'High F', octave: 4, staffStep: 8, accidental: null, freq: 349.23,
         fingeringState: [false, true, true, true, true, false, true, false],
         description: 'Upper F — forked fingering with half-thumb.',
         prompt: 'Half-thumb + holes 1, 2, 3, 4, and 6. Holes 5 and 7 open. Same forked F pattern, now in the upper register.'
       },
       {
-        id: 'tn-12', noteName: 'G', octave: 4, staffStep: 9, accidental: null, freq: 392.00,
+        id: 'tn-12', noteName: 'High G', octave: 4, staffStep: 9, accidental: null, freq: 392.00,
         fingeringState: [false, true, true, true, false, false, false, false],
         description: 'Upper G — half-thumb + holes 1, 2, 3. Left hand only.',
         prompt: 'Half-thumb + holes 1, 2, 3. Right hand off completely. Your highest note yet on the tenor!'
@@ -779,7 +823,7 @@ const CURRICULUM = {
         prompt: 'Cover thumb + holes 1 through 6, closing only the upper hole of 7. Big, warm air.'
       },
       {
-        id: 'br-3', noteName: 'C', octave: 3, staffStep: 3, accidental: null, freq: 130.81,
+        id: 'br-3', noteName: 'Low C', octave: 3, staffStep: 3, accidental: null, freq: 130.81,
         fingeringState: [true, true, true, true, false, false, false, false],
         description: 'C uses all three left-hand fingers.',
         prompt: 'Cover thumb + holes 1, 2, 3. Right hand stays open. Support deeply from the diaphragm for this low, dark note.'
@@ -796,19 +840,19 @@ const CURRICULUM = {
         pianoChords: ['G','D7','G','G','D7','G','G','G','G/B','G/B','Am','Am','G/B','C','G','D7','G'],
       },
       {
-        id: 'br-4', noteName: 'B', octave: 2, staffStep: 2, accidental: null, freq: 123.47,
+        id: 'br-4', noteName: 'Low B', octave: 2, staffStep: 2, accidental: null, freq: 123.47,
         fingeringState: [true, true, true, true, true, false, false, false],
         description: 'B2 — forked fingering. Four fingers down.',
         prompt: 'Cover thumb + holes 1, 2, 3, and 4. Hole 5 stays open. This forked B has a dark, rich colour.'
       },
       {
-        id: 'br-5', noteName: 'A', octave: 2, staffStep: 1, accidental: null, freq: 110.00,
+        id: 'br-5', noteName: 'Low A', octave: 2, staffStep: 1, accidental: null, freq: 110.00,
         fingeringState: [true, true, true, true, true, true, false, false],
         description: 'A2 — both hands now. Thumb through hole 5.',
         prompt: 'Cover thumb + holes 1 through 5. Holes 6 and 7 open. This low A needs generous, steady air.'
       },
       {
-        id: 'br-6', noteName: 'G', octave: 2, staffStep: 0, accidental: null, freq: 98.00,
+        id: 'br-6', noteName: 'Low G', octave: 2, staffStep: 0, accidental: null, freq: 98.00,
         fingeringState: [true, true, true, true, true, true, true, false],
         description: 'G2 — almost all covered. Deep and resonant.',
         prompt: 'Cover thumb + holes 1 through 6. Only hole 7 stays open. Max air, relaxed embouchure for this low G.'
@@ -831,7 +875,7 @@ const CURRICULUM = {
         prompt: '',
       },
       {
-        id: 'br-7', noteName: 'F', octave: 2, staffStep: -1, accidental: null, freq: 87.31,
+        id: 'br-7', noteName: 'Low F', octave: 2, staffStep: -1, accidental: null, freq: 87.31,
         fingeringState: [true, true, true, true, true, true, true, true],
         description: 'F2 — all holes covered. The bottom of the bass recorder.',
         prompt: 'Cover everything: thumb + holes 1 through 7. This is your lowest note. Maximum air, very relaxed embouchure.'
@@ -844,13 +888,13 @@ const CURRICULUM = {
         prompt: 'Cover thumb + holes 1, 2, 3, 4, 6, and 7. Leave hole 5 open. Maximum air.'
       },
       {
-        id: 'br-8', noteName: 'F', octave: 3, staffStep: 6, accidental: null, freq: 174.61,
+        id: 'br-8', noteName: 'High F', octave: 3, staffStep: 6, accidental: null, freq: 174.61,
         fingeringState: [false, true, true, true, true, true, true, true],
         description: 'Upper F — your first half-thumb note on the bass.',
         prompt: 'Pinch the thumb hole partially open. Keep all other holes covered. Fast, focused air for this upper register F.'
       },
       {
-        id: 'br-9', noteName: 'G', octave: 3, staffStep: 7, accidental: null, freq: 196.00,
+        id: 'br-9', noteName: 'High G', octave: 3, staffStep: 7, accidental: null, freq: 196.00,
         fingeringState: [false, true, true, true, true, true, true, false],
         description: 'Upper G — half-thumb + holes 1 through 6.',
         prompt: 'Half-thumb + holes 1 through 6. Same fingering as G2 but with the thumb pinched open. A bright, singing sound.'
@@ -866,13 +910,13 @@ const CURRICULUM = {
         durations: [1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 4, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 4],
       },
       {
-        id: 'br-10', noteName: 'A', octave: 3, staffStep: 8, accidental: null, freq: 220.00,
+        id: 'br-10', noteName: 'High A', octave: 3, staffStep: 8, accidental: null, freq: 220.00,
         fingeringState: [false, true, true, true, true, true, false, false],
         description: 'Upper A — half-thumb + holes 1 through 5.',
         prompt: 'Half-thumb + holes 1 through 5. Keep your air fast and steady. This bright A sits above the bass staff.'
       },
       {
-        id: 'br-11', noteName: 'B', octave: 3, staffStep: 9, accidental: null, freq: 246.94,
+        id: 'br-11', noteName: 'High B', octave: 3, staffStep: 9, accidental: null, freq: 246.94,
         fingeringState: [false, true, true, true, true, false, false, false],
         description: 'Upper B — half-thumb + holes 1 through 4, forked.',
         prompt: 'Half-thumb + holes 1, 2, 3, 4. Hole 5 stays open (forked). Light, focused air for this high B.'
@@ -885,7 +929,7 @@ const CURRICULUM = {
         prompt: '',
       },
       {
-        id: 'br-12', noteName: 'C', octave: 4, staffStep: 10, accidental: null, freq: 261.63,
+        id: 'br-12', noteName: 'High C', octave: 4, staffStep: 10, accidental: null, freq: 261.63,
         fingeringState: [false, true, true, true, false, false, false, false],
         description: 'Upper C — half-thumb + holes 1, 2, 3. Highest note.',
         prompt: 'Half-thumb + holes 1, 2, 3. Right hand off. Maximum air speed for this sparkling high C on the bass!'
