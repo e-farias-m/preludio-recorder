@@ -3762,7 +3762,7 @@ function detectPitch(buffer, sampleRate) {
   }
   if (peak < 0.02 || Math.sqrt(energy / size) < 0.01) return -1;
   const minLag = Math.max(2, Math.floor(sampleRate / 2000));
-  const maxLag = Math.min(size - 2, Math.ceil(sampleRate / 40));
+  const maxLag = Math.min(size - 2, Math.ceil(sampleRate / 60));
   if (maxLag <= minLag) return -1;
   const prefix = new Float64Array(size + 1);
   for (let i = 0; i < size; i++) prefix[i + 1] = prefix[i] + buffer[i] * buffer[i];
@@ -3801,6 +3801,10 @@ function freqToNoteInfo(freq, noteLessons) {
     const cents = 1200 * Math.log2(freq / n.freq);
     if (best === null || Math.abs(cents) < Math.abs(best.cents)) best = { note: n, cents };
   });
+  // Reject detections that are more than half an octave away from any known
+  // note (e.g. low-frequency hum or noise) so we don't show a misleading
+  // "closest" note with thousands of cents of error.
+  if (best && Math.abs(best.cents) > 600) return null;
   return best;
 }
 function getTunerNoteLessons() {
