@@ -25,12 +25,32 @@ var NOTE_TO_SOLFEGE_PT = {
   'A': 'Lá', 'A#': 'Lá#', 'Bb': 'Sib', 'B': 'Si'
 };
 
+const QUALIFIER_PT = { 'Low': 'grave', 'High': 'agudo' };
+const QUALIFIER_FR = { 'Low': 'grave', 'High': 'aigu' };
+
 function noteToSolfeggio(str) {
   if (typeof str !== 'string') return str;
+  const trimmed = str.trim();
+  // Handle "Low X"/"High X" qualified note names (e.g. "Low C", "High C#")
+  const qMatch = trimmed.match(/^(Low|High)\s+([A-G][#b]?)$/i);
+  if (qMatch) {
+    const qual = qMatch[1][0].toUpperCase() + qMatch[1].slice(1).toLowerCase();
+    const note = qMatch[2];
+    if (LANG === 'pt') {
+      const sol = NOTE_TO_SOLFEGE_PT[note] || note;
+      const q = QUALIFIER_PT[qual];
+      if (q) return sol + ' ' + q;
+    }
+    if (LANG === 'fr') {
+      const q = QUALIFIER_FR[qual];
+      if (q) return note + ' ' + q;
+    }
+    return str;
+  }
   if (LANG === 'pt') {
     // Match note names like C, C#, Db, etc.
-    if (/^[A-G][#b]?$/.test(str.trim())) {
-      return NOTE_TO_SOLFEGE_PT[str.trim()] || str;
+    if (/^[A-G][#b]?$/.test(trimmed)) {
+      return NOTE_TO_SOLFEGE_PT[trimmed] || str;
     }
   }
   return str;
@@ -77,6 +97,9 @@ function t(str) {
     if (TRANSLATIONS.fr && Object.prototype.hasOwnProperty.call(TRANSLATIONS.fr, str)) {
       return TRANSLATIONS.fr[str];
     }
+    // Try solfege conversion for note names (Low/High qualifiers)
+    const sol = noteToSolfeggio(str);
+    if (sol !== str) return sol;
   }
   return str;
 }
@@ -140,8 +163,8 @@ function applyI18nToDOM() {
           return;
         }
 
-        // Try solfege conversion for note names (single letters, pt only)
-        if (LANG === 'pt') {
+        // Try solfege conversion for note names (single letters, pt; Low/High qualifiers, pt+fr)
+        if (LANG === 'pt' || LANG === 'fr') {
           const sol = noteToSolfeggio(trimmed);
           if (sol !== trimmed) {
             textNode.nodeValue = original.replace(trimmed, sol);

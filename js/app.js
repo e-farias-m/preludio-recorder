@@ -3828,6 +3828,9 @@ function startTuner() {
     if (!APP.tuner || !APP.tuner.running) { stream.getTracks().forEach(tr => tr.stop()); return; }
     tuner.stream = stream;
     tuner.ctx = new Ctx();
+    if (tuner.ctx.state === 'suspended' && typeof tuner.ctx.resume === 'function') {
+      tuner.ctx.resume().catch(() => {});
+    }
     const source = tuner.ctx.createMediaStreamSource(stream);
     const analyser = tuner.ctx.createAnalyser();
     analyser.fftSize = 2048;
