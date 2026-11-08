@@ -27,6 +27,7 @@ const CURRICULUM = {
     isTransposing: false,
     accentColor: 'var(--accent-warm)',
     available: true,
+    splitHoles: [6, 7],
     lessons: [
       {
         id: 'sr-1',
@@ -540,6 +541,7 @@ const CURRICULUM = {
   'tenor-recorder': {
     id: 'tenor-recorder', name: 'Tenor Recorder', shortName: 'Tenor',
     clef: 'treble', fingeringType: 'recorder', isTransposing: false, available: true, accentColor: 'var(--accent-warm)',
+    splitHoles: [6, 7],
     lessons: [
       {
         id: 'tn-1', noteName: 'B', octave: 3, staffStep: 4, accidental: null, freq: 246.94,
