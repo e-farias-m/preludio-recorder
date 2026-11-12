@@ -2612,16 +2612,31 @@ function setGateStatus(msg, kind) {
   status.style.color = kind === 'ok' ? '#16a34a' : kind === 'warn' ? '#b45309' : '';
 }
 
-function stopMicGate() {
+function stopMicGate(restoreAudio = true) {
+  APP._gateToken = (APP._gateToken || 0) + 1;
   if (APP._gateRAF) cancelAnimationFrame(APP._gateRAF);
   APP._gateRAF = null;
   if (APP._gateStream) { APP._gateStream.getTracks().forEach(tr => tr.stop()); APP._gateStream = null; }
   if (APP._gateCtx && APP._gateCtx.close) { try { APP._gateCtx.close().catch(() => {}); } catch(e) {} APP._gateCtx = null; }
   APP._gateAnalyser = null;
+  if (restoreAudio) AudioEngine.restorePlayback();
 }
 
-function startMicGate(lesson) {
-  stopMicGate();
+function requestMicGateStream() {
+  const token = APP._gateToken = (APP._gateToken || 0) + 1;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !Ctx) {
+    return {token, promise: Promise.resolve(null)};
+  }
+  AudioEngine.prepareForCapture();
+  return {
+    token,
+    promise: navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null)
+  };
+}
+
+function startMicGate(lesson, micRequest) {
+  if (micRequest && micRequest.token !== APP._gateToken) return;
   APP._gateState = 'listening';
   APP._gateFrames = 0;
   APP._gateStartedAt = Date.now();
@@ -2629,12 +2644,27 @@ function startMicGate(lesson) {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !Ctx) {
     APP._gateState = 'unavailable';
     APP.play.micGate = 'unavailable';
+    AudioEngine.restorePlayback();
     setGateStatus(t('Microphone not available — you can continue below.'), 'warn');
     renderMicGateArea();
     return;
   }
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-    if (APP._gateState !== 'listening') { stream.getTracks().forEach(tr => tr.stop()); return; }
+  micRequest = micRequest || requestMicGateStream();
+  const gateToken = micRequest.token;
+  AudioEngine.prepareForCapture();
+  micRequest.promise.then(stream => {
+    if (gateToken !== APP._gateToken || APP._gateState !== 'listening') {
+      if (stream) stream.getTracks().forEach(tr => tr.stop());
+      return;
+    }
+    if (!stream) {
+      APP._gateState = 'unavailable';
+      APP.play.micGate = 'unavailable';
+      AudioEngine.restorePlayback();
+      setGateStatus(t('Microphone unavailable — you can continue below.'), 'warn');
+      renderMicGateArea();
+      return;
+    }
     APP._gateStream = stream;
     APP._gateCtx = new Ctx();
     if (APP._gateCtx.state === 'suspended' && typeof APP._gateCtx.resume === 'function') {
@@ -2684,21 +2714,17 @@ function startMicGate(lesson) {
       APP._gateRAF = requestAnimationFrame(loop);
     };
     APP._gateRAF = requestAnimationFrame(loop);
-  }).catch(() => {
-    if (APP._gateState !== 'listening') return;
-    APP._gateState = 'unavailable';
-    APP.play.micGate = 'unavailable';
-    setGateStatus(t('Microphone unavailable — you can continue below.'), 'warn');
-    renderMicGateArea();
   });
 }
 
 function stopMicGateKeepState() {
+  APP._gateToken = (APP._gateToken || 0) + 1;
   if (APP._gateRAF) cancelAnimationFrame(APP._gateRAF);
   APP._gateRAF = null;
   if (APP._gateStream) { APP._gateStream.getTracks().forEach(tr => tr.stop()); APP._gateStream = null; }
   if (APP._gateCtx && APP._gateCtx.close) { try { APP._gateCtx.close().catch(() => {}); } catch(e) {} APP._gateCtx = null; }
   APP._gateAnalyser = null;
+  AudioEngine.restorePlayback();
 }
 
 function renderMicGateArea() {
@@ -2713,7 +2739,7 @@ function renderMicGateArea() {
 }
 
 // ── PLAY PHASE SEQUENCE ─────────────────────────────────────────────────
-function runPlaySequence(inst, lesson, listenOnly) {
+function runPlaySequence(inst, lesson, listenOnly, micRequest) {
   const btn = document.getElementById('play-start-btn');
   const status = document.getElementById('play-status');
   if (!btn || btn.disabled) return;
@@ -2781,7 +2807,7 @@ function runPlaySequence(inst, lesson, listenOnly) {
         renderMicGateArea();
       } else {
         status.textContent = t('Play it now — I’m listening…');
-        startMicGate(lesson);
+        startMicGate(lesson, micRequest);
       }
     }, 4 * beatMs + 1500);
   }
@@ -3101,6 +3127,7 @@ function handleAction(action, el) {
     case 'go-select':
       stopMetronome();
       stopTuner();
+      stopMicGate();
       endSession();
       APP.screen = 'select';
       render();
@@ -3413,6 +3440,7 @@ function handleAction(action, el) {
     }
 
     case 'exit-lesson':
+      stopMicGate();
       APP.reviewQueue = null;
       APP.reviewIndex = 0;
       APP.reviewCorrect = 0;
@@ -3538,12 +3566,16 @@ function handleAction(action, el) {
 
     case 'play-start': {
       AudioEngine.unlock();
-      AudioEngine.unlock();
       const inst = getInstrument(APP.instrumentId);
       const lesson = getLesson(APP.instrumentId, APP.lessonIndex);
       const isFirstTime = !APP.play.hasListened;
       APP.play.hasListened = true;
-      runPlaySequence(inst, lesson, isFirstTime);
+      let micRequest = null;
+      if (!isFirstTime && !isSongLesson(lesson)) {
+        stopMicGate();
+        micRequest = requestMicGateStream();
+      }
+      runPlaySequence(inst, lesson, isFirstTime, micRequest);
       break;
     }
 
@@ -3838,12 +3870,14 @@ function startRecording() {
   if (!canRecord() || APP.recorder) return;
   // One microphone stream at a time: the tuner stops before a take begins.
   stopTuner();
+  AudioEngine.prepareForCapture();
   return navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
     const chunks = [];
     const mediaRecorder = new MediaRecorder(stream);
     mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
     mediaRecorder.onstop = () => {
       stream.getTracks().forEach(t => t.stop());
+      AudioEngine.restorePlayback();
       if (APP.recordingUrl) URL.revokeObjectURL(APP.recordingUrl);
       const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });
       APP.recordingUrl = URL.createObjectURL(blob);
@@ -3853,7 +3887,10 @@ function startRecording() {
     mediaRecorder.start();
     APP.recorder = { mediaRecorder, stream };
     render();
-  }).catch(() => showToast(t('Microphone unavailable.')));
+  }).catch(() => {
+    AudioEngine.restorePlayback();
+    showToast(t('Microphone unavailable.'));
+  });
 }
 
 function stopRecording() {
@@ -3949,12 +3986,14 @@ function stopTuner() {
   if (tuner.stream) tuner.stream.getTracks().forEach(tr => tr.stop());
   if (tuner.ctx && tuner.ctx.close) tuner.ctx.close().catch(() => {});
   tuner.running = false; tuner.frame = null; tuner.stream = null; tuner.ctx = null;
+  AudioEngine.restorePlayback();
 }
 function startTuner() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showToast(t('Microphone not available for tuning.')); return; }
   const Ctx = window.AudioContext || window.webkitAudioContext;
   if (!Ctx) { showToast(t('Audio analysis not supported here.')); return; }
   stopTuner();
+  AudioEngine.prepareForCapture();
   APP.tuner = { running: true, freq: -1, ctx: null, stream: null, frame: null };
   const tuner = APP.tuner;
   navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
@@ -3979,6 +4018,7 @@ function startTuner() {
     loop();
   }).catch(() => {
     if (APP.tuner) APP.tuner.running = false;
+    AudioEngine.restorePlayback();
     showToast(t('Could not access the microphone.'));
     render();
   });

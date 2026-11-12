@@ -9,17 +9,20 @@ const AudioEngine = (() => {
   // iOS 17+: move Web Audio to the media playback channel so the hardware
   // silent switch does not mute it. Must be set synchronously inside a user
   // gesture.
-  function setAudioSession() {
+  function setAudioSession(type) {
     try {
       if (typeof navigator !== 'undefined' && navigator.audioSession && typeof navigator.audioSession.type !== 'undefined') {
-        navigator.audioSession.type = 'playback';
+        navigator.audioSession.type = type || 'playback';
       }
     } catch (e) {}
   }
 
+  function prepareForCapture() { setAudioSession('play-and-record'); }
+  function restorePlayback() { setAudioSession('playback'); }
+
   function getCtx() {
     if (!ctx) {
-      setAudioSession();
+      setAudioSession('playback');
       ctx = new (window.AudioContext || window.webkitAudioContext)();
     }
     if (ctx.state === 'suspended' || ctx.state === 'interrupted') {
@@ -322,7 +325,7 @@ const AudioEngine = (() => {
   // where navigator.audioSession is not supported; playing any audio element
   // inside a user gesture promotes the page out of the ringer/silent channel.
   function unlock() {
-    setAudioSession();
+    setAudioSession('playback');
     try {
       if (!window.__preludioAudioUnlock) {
         const a = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAAAAAA==');
@@ -335,5 +338,5 @@ const AudioEngine = (() => {
     startSilentBuffer();
   }
 
-  return { playInstrumentNote, playInstrumentChord, playPianoChord, chordToFreqs, playClick, unlock, fetchAndDecode, playBuffer, getContext };
+  return { playInstrumentNote, playInstrumentChord, playPianoChord, chordToFreqs, playClick, unlock, fetchAndDecode, playBuffer, getContext, prepareForCapture, restorePlayback };
 })();
