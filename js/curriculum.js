@@ -982,11 +982,11 @@ const CURRICULUM = {
       {
         id: 'br-song-8', type: 'song', libraryOnly: true,
         noteName: "Three Blind Mice",
-        prerequisiteIds: ['br-9', 'br-12', 'br-13', 'br-14', 'br-fs'],
+        prerequisiteIds: ['br-9', 'br-12', 'br-11', 'br-12', 'br-fs'],
         description: 'A traditional nursery rhyme using C, D, E, F#, and G.',
         prompt: 'Watch for the F sharp \u2014 it gives the melody its special color.',
         keySig: 1, timeSig: { num: 4, den: 4 },
-        noteIds: ['br-14', 'br-13', 'br-12', 'br-14', 'br-13', 'br-12', 'br-9', 'br-fs', 'br-14', 'br-13', 'br-12'],
+        noteIds: ['br-12', 'br-11', 'br-12', 'br-12', 'br-11', 'br-12', 'br-9', 'br-fs', 'br-12', 'br-11', 'br-12'],
         durations: ['q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'w'],
         gaps: [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0],
       },
