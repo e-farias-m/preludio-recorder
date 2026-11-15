@@ -299,7 +299,7 @@ const Graphics = (() => {
     });
     const stemUpOf = e => (beamUp.has(e) ? beamUp.get(e) : e.note.pos <= 4);
 
-    let svg = `<svg viewBox="0 0 ${VB_W} ${VB_H}" width="${width}" height="${renderH.toFixed(1)}" xmlns="http://www.w3.org/2000/svg">`;
+    let svg = `<svg viewBox="0 0 ${VB_W} ${VB_H}" width="${(width * 0.9).toFixed(1)}" height="${(renderH * 0.9).toFixed(1)}" xmlns="http://www.w3.org/2000/svg">`;
     const clefName = CLEF_GLYPH[clef] ? clef : 'treble';
     const cmet = CLEF_GLYPH[clefName];
     const keyPos = keySig > 0 ? KEY_SHARP_POS : KEY_FLAT_POS;
