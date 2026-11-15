@@ -21,6 +21,8 @@ var CHORD_FREQS = {
 
 const THEME_KEY = 'preludioRecorderTheme';
 function getTheme() { return LS.getItem(THEME_KEY) || 'dark'; }
+// The wordmark has navy lettering, so dark screens use a light-lettered variant.
+function logoSrc() { return getTheme() === 'light' ? 'logo.svg' : 'logo-dark.svg'; }
 function applyTheme(theme) {
   if (typeof document !== 'undefined' && document.documentElement) {
     document.documentElement.setAttribute('data-theme', theme);
@@ -177,7 +179,7 @@ function showNamePrompt() {
   overlay.innerHTML = `
     <div class="name-modal">
       <div style="display:flex;justify-content:flex-end;width:100%"><button class="theme-toggle" data-action="name-toggle-language" title="${t('Language')}">${getLang() === 'pt' ? 'PT' : getLang() === 'fr' ? 'FR' : 'EN'}</button></div>
-      <div class="name-modal-icon"><img class="wordmark-logo-full" src="logo.svg" alt="Preludio Recorder" style="height:56px" /></div>
+      <div class="name-modal-icon"><img class="wordmark-logo-full" src="${logoSrc()}" alt="Preludio Recorder" style="height:56px" /></div>
       <div class="name-modal-title">${t('Welcome!')}</div>
       <div class="name-modal-sub">${t("What's your name?")}</div>
       <input type="text" class="name-input" placeholder="${t('Your name...')}" maxlength="50" autocomplete="off" />
@@ -485,7 +487,7 @@ function generatePlan(instrumentId, now = Date.now()) {
     isSongLesson(s) && isLessonUnlocked(instrumentId, CURRICULUM[instrumentId].lessons.indexOf(s)));
   const song = songs.find(s => !prog.completed[s.id]) || songs[0];
   if (song) {
-    items.push({ id: 'song:' + song.id, type: 'song', targetId: song.id, reason: 'Apply your notes' });
+    items.push({ id: 'song:' + song.id, type: 'song', targetId: song.id, reason: t('Apply your notes') });
   }
 
   return { date: todayKey(new Date(now)), items };
@@ -808,7 +810,7 @@ function showTranslationEditor() {
     render();
   });
   overlay.querySelector('[data-action="clear-translations"]').addEventListener('click', () => {
-    if (confirm('Clear all custom translations for this language?')) {
+    if (confirm(t('Clear all custom translations for this language?'))) {
       clearUserOverrides(lang);
       overlay.remove();
       showToast(t('Translations reset.'));
@@ -885,7 +887,7 @@ function renderStudentCard(name) {
   const minutes = Math.floor(getTotalPracticeSeconds() / 60);
   const pct = xp % 100;
   const streakHtml = streak > 0
-    ? `<span class="student-stat student-stat-streak">\u{1F525} ${streak}-day streak</span>`
+    ? `<span class="student-stat student-stat-streak">\u{1F525} ${tFill('{n}-day streak', { n: streak })}</span>`
     : `<span class="student-stat">${t('Practice today to start a streak!')}</span>`;
   return `
     <div class="student-card">
@@ -893,7 +895,7 @@ function renderStudentCard(name) {
       <div class="student-details">
         <div class="student-name-row">
           <span class="student-name">${escapeHtml(name)}</span>
-          <span class="student-level">Lv ${level}</span>
+          <span class="student-level">${t('Lv')} ${level}</span>
         </div>
         <div class="student-stats">
           ${streakHtml}
@@ -1254,11 +1256,11 @@ function renderReportScreen() {
           <div class="report-card-xp">${r.xp} XP</div>
         </div>
         <div class="report-bar-track"><div class="report-bar-fill" style="width:${pct}%"></div></div>
-        <div class="report-card-line">${r.notesLearned}/${r.notesTotal} notes \u00b7 ${r.songsCompleted}/${r.songsTotal} songs</div>
+        <div class="report-card-line">${tFill('{learned}/{total} notes \u00b7 {done}/{songs} songs', { learned: r.notesLearned, total: r.notesTotal, done: r.songsCompleted, songs: r.songsTotal })}</div>
         <div class="report-mastery">
-          <span class="report-mastered">${r.mastery.mastered} mastered</span>
-          <span class="report-practiced">${r.mastery.practiced} practiced</span>
-          <span class="report-learning">${r.mastery.learning} learning</span>
+          <span class="report-mastered">${tFill('{n} mastered', { n: r.mastery.mastered })}</span>
+          <span class="report-practiced">${tFill('{n} practiced', { n: r.mastery.practiced })}</span>
+          <span class="report-learning">${tFill('{n} learning', { n: r.mastery.learning })}</span>
         </div>
         ${weak}
       </div>`;
@@ -1386,7 +1388,7 @@ function renderSelectScreen() {
     <div class="screen active select-screen">
       <div class="select-hero">
         <div class="wordmark">
-          <img class="wordmark-logo-full" src="logo.svg" alt="Preludio Recorder" />
+          <img class="wordmark-logo-full" src="${logoSrc()}" alt="Preludio Recorder" />
         </div>
         <div class="select-headline">${headline}</div>
         <div class="select-sub">${sub}</div>
@@ -1675,15 +1677,15 @@ function renderPlanCard(instrumentId) {
   const done = plan.items.filter(i => i.done).length;
   const total = plan.items.length;
   const rows = plan.items.map(it => {
-    let label = 'Practice';
+    let label = t('Practice');
     if (it.type === 'note') {
       const n = findLessonById(instrumentId, it.targetId);
-      label = 'Review ' + (n ? t(n.noteName) : 'note');
+      label = tFill('Review {name}', { name: n ? t(n.noteName) : t('note') });
     } else if (it.type === 'song') {
       const s = findLessonById(instrumentId, it.targetId);
-      label = 'Play ' + (s ? t(s.noteName) : 'song');
+      label = tFill('Play {name}', { name: s ? t(s.noteName) : t('song') });
     } else if (it.type === 'sprint') {
-      label = (it.mode === SPRINT_MODES.FINGER ? 'Finger gym' : 'Sight-reading') + ' sprint';
+      label = t(it.mode === SPRINT_MODES.FINGER ? 'Finger gym sprint' : 'Sight-reading sprint');
     }
     const icon = it.type === 'sprint' ? '\u{26A1}' : '\u{1F3B5}';
     return `
@@ -2141,7 +2143,7 @@ function renderQuizPhase(inst, lesson) {
   if (isReview) {
     reviewProgress = `<div class="review-progress">${tFill('Note {current} of {total}', { current: APP.reviewIndex + 1, total: APP.reviewTotal })}</div>`;
   } else if (APP.quizQueue && APP.quizQueue.length > 1) {
-    reviewProgress = `<div class="review-progress">Question ${APP.quizIndex + 1} of ${APP.quizQueue.length}</div>`;
+    reviewProgress = `<div class="review-progress">${tFill('Question {n} of {total}', { n: APP.quizIndex + 1, total: APP.quizQueue.length })}</div>`;
   }
 
   // ── PROMPT ──
@@ -2304,7 +2306,7 @@ function renderCompletePhase(inst, lesson) {
         <div class="complete-stars">${starsHtml}</div>
         <div class="complete-xp">+${xp} XP</div>
         <div class="complete-title">${t('Review complete!')}</div>
-        <div class="complete-sub">${APP.reviewCorrect} of ${APP.reviewTotal} on first try</div>
+        <div class="complete-sub">${tFill('{n} of {total} on first try', { n: APP.reviewCorrect, total: APP.reviewTotal })}</div>
         <div class="review-notes-list">${notesHtml}</div>
         ${_recHtml}
         <div class="gap-lg"></div>
@@ -2583,7 +2585,12 @@ function render() {
   if (typeof applyI18nToDOM === 'function') applyI18nToDOM();
   renderToolWidget();
   const _logoFixed = document.getElementById('app-logo-fixed');
-  if (_logoFixed) _logoFixed.style.display = (APP.screen === 'select') ? 'none' : 'block';
+  if (_logoFixed) {
+    _logoFixed.style.display = (APP.screen === 'select') ? 'none' : 'block';
+    if (typeof _logoFixed.getAttribute === 'function' && _logoFixed.getAttribute('src') !== logoSrc()) {
+      _logoFixed.setAttribute('src', logoSrc());
+    }
+  }
   if (APP.showReference) {
     const refHtml = renderReferenceOverlay();
     if (refHtml) app.insertAdjacentHTML('beforeend', refHtml);
@@ -3099,7 +3106,7 @@ function handleAction(action, el) {
     case 'select-instrument': {
       const id = el.dataset.id;
       const inst = getInstrument(id);
-      if (!inst.available) { showToast(`${t(inst.name)} is coming soon!`); return; }
+      if (!inst.available) { showToast(tFill('{name} is coming soon!', { name: t(inst.name) })); return; }
       APP.instrumentId = id;
       setSavedInstrument(id);
       APP.pickingInstrument = false;
