@@ -329,6 +329,10 @@ const Graphics = (() => {
       if (s === 0 && bpm) {
         svg += `<text x="${KEY_X}" y="${y(8) - 20}" font-size="13" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">\u2669=${bpm}</text>`;
       }
+      // Measure numbers: one per bar in this system, placed just after the barline.
+      for (let i = 0; i < bars; i++) {
+        svg += `<text x="${sysStartX + (firstBar + i) * barW + barW}" y="${y(0) + 16}" font-size="12" font-weight="600" text-anchor="end" font-family="Georgia, serif" fill="${INK}">${firstBar + i + 1}</text>`;
+      }
 
       for (let b = 1; b < bars; b++) svg += line(sysStartX + b * barW, y(8), sysStartX + b * barW, y(0), 1.3);
       // The closing bar line of the piece is thick; a line that only ends a
@@ -343,7 +347,7 @@ const Graphics = (() => {
           const color = e.index === highlightIndex ? accentColor : INK;
           const noteY = y(note.pos);
           const up = stemUpOf(e);
-          if (e.index === highlightIndex) svg += `<circle cx="${x}" cy="${noteY}" r="12" fill="${accentColor}" opacity="0.18"/>`;
+          if (e.index === highlightIndex) svg += `<circle cx="${x}" cy="${noteY}" r="11" fill="${accentColor}" opacity="0.18"/>`;
           svg += `<g data-note-index="${e.index}">`;
           ledgerPositions(note.pos).forEach(p => {
             svg += `<line x1="${x - 9}" y1="${y(p)}" x2="${x + 9}" y2="${y(p)}" stroke="${color}" stroke-width="1.3"/>`;
@@ -352,12 +356,12 @@ const Graphics = (() => {
             svg += `<text x="${x - 13}" y="${noteY + 5}" font-size="17" fill="${color}" font-family="Georgia, serif">${note.accidental}</text>`;
           }
           const open = e.dur >= 2;
-          svg += `<ellipse cx="${x}" cy="${noteY}" rx="${HEAD_RX}" ry="4.2" fill="${open ? 'none' : color}" stroke="${open ? color : OPEN}" stroke-width="${open ? 1.8 : 1.2}" transform="rotate(-18 ${x} ${noteY})"/>`;
-          if (e.dur === 1.5 || e.dur === 3) svg += `<circle cx="${x + 10}" cy="${noteY}" r="1.6" fill="${color}"/>`;
+          svg += `<ellipse cx="${x}" cy="${noteY}" rx="${HEAD_RX}" ry="3.6" fill="${open ? 'none' : color}" stroke="${open ? color : OPEN}" stroke-width="${open ? 1.6 : 1.2}" transform="rotate(-18 ${x} ${noteY})"/>`;
+          if (e.dur === 1.5 || e.dur === 3) svg += `<circle cx="${x + 10}" cy="${noteY}" r="1.4" fill="${color}"/>`;
           if (e.dur < 4) {
             const stemX = up ? x + 5.5 : x - 5.5;
             const stemEnd = up ? noteY - 32 : noteY + 32;
-            svg += `<line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemEnd}" stroke="${color}" stroke-width="1.6"/>`;
+            svg += `<line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemEnd}" stroke="${color}" stroke-width="1.4"/>`;
           }
           svg += `</g>`;
         });
@@ -393,7 +397,7 @@ const Graphics = (() => {
           const ends = e => [xOf.get(e) + (up ? 5.5 : -5.5), y(e.note.pos) + (up ? -32 : 32)];
           const [x1, y1] = ends(first);
           const [x2, y2] = ends(last);
-          svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3.5"/>`;
+          svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3.0"/>`;
         }
       });
     }

@@ -86,7 +86,7 @@ for (const id of INSTRUMENT_ORDER) {
 {
   const heads = svg => (svg.match(/<ellipse/g) || []).length;
   const headAt = (svg, i) => (svg.match(/<ellipse[^>]*>/g) || [])[i];
-  const stems = svg => (svg.match(/<line x1="[^"]*" y1="[^"]*" x2="[^"]*" y2="[^"]*" stroke="var\(--dg-ink\)" stroke-width="1.6"\/>/g) || []).length;
+  const stems = svg => (svg.match(/<line x1="[^"]*" y1="[^"]*" x2="[^"]*" y2="[^"]*" stroke="var\(--dg-ink\)" stroke-width="1.4"\/>/g) || []).length;
   const notes = [
     { pos: 0, accidental: null, duration: 1 },
     { pos: 2, accidental: null, duration: 2 },
@@ -100,7 +100,7 @@ for (const id of INSTRUMENT_ORDER) {
   check(stems(svg) === 2, `quarter and half notes carry stems, whole does not (got ${stems(svg)})`);
   check(Graphics.melodySVG({ notes: [{ pos: 0 }] }).includes('fill="var(--dg-ink)"'), 'a note without a duration defaults to a filled quarter note');
   // A dotted quarter note (1.5 beats) carries a dot.
-  check(Graphics.melodySVG({ notes: [{ pos: 2, duration: 1.5 }] }).includes('r="1.6"'), 'a dotted quarter note draws its dot');
+  check(Graphics.melodySVG({ notes: [{ pos: 2, duration: 1.5 }] }).includes('r="1.4"'), 'a dotted quarter note draws its dot');
   // Rests come from the engraved Bravura rest glyph, not a fake notehead.
   check(Graphics.melodySVG({ notes: [{ pos: 2, duration: 1 }], gaps: [1] }).includes('class="rest rest-quarter"'), 'a quarter rest is drawn from the engraved rest glyph');
   // The song's written tempo is drawn as a marking above the staff.
