@@ -101,6 +101,8 @@ for (const id of INSTRUMENT_ORDER) {
   check(Graphics.melodySVG({ notes: [{ pos: 0 }] }).includes('fill="var(--dg-ink)"'), 'a note without a duration defaults to a filled quarter note');
   // A dotted quarter note (1.5 beats) carries a dot.
   check(Graphics.melodySVG({ notes: [{ pos: 2, duration: 1.5 }] }).includes('r="1.6"'), 'a dotted quarter note draws its dot');
+  // Rests come from the engraved Bravura rest glyph, not a fake notehead.
+  check(Graphics.melodySVG({ notes: [{ pos: 2, duration: 1 }], gaps: [1] }).includes('class="rest rest-quarter"'), 'a quarter rest is drawn from the engraved rest glyph');
 }
 
 // ── Melody staff shows 4/4 and places bar lines on the beats ───────────────
