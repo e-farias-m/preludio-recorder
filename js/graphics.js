@@ -202,31 +202,35 @@ const Graphics = (() => {
 
   // `ref` is the staff position the glyph origin sits on: the middle line for
   // quarter, eighth and half rests, and the fourth line for a whole rest.
-  function restSVG(x, y, dur, color) {
+  function restSVG(x, y, dur, color, staffSpace = STAFF_SPACE) {
     const kind = dur >= 4 ? 'whole' : dur >= 2 ? 'half' : dur >= 1 ? 'quarter' : 'eighth';
     const glyph = REST_GLYPH[kind];
     const ref = kind === 'whole' ? 6 : 4;
-    const s = (STAFF_SPACE / 250) * 0.8;
+    const s = (staffSpace / 250) * 0.8;
     const tx = x - ((glyph.x_min + glyph.x_max) / 2) * s;
     return `<path class="rest rest-${kind}" d="${glyph.d}" fill="${color}" transform="translate(${tx.toFixed(2)} ${y(ref).toFixed(2)}) scale(${s.toFixed(5)} ${(-s).toFixed(5)})"/>`;
   }
 
   function melodySVG({ notes = [], highlightIndex = -1, clef = 'treble', accentColor = 'var(--accent-warm)', width = 320, barsPerSystem = 4, beatsPerBar = 4, timeSig = null, keySig = 0, bpm = null, pickup = 0, gaps = [], repeatStart = false, repeatEnd = false, dynamics = [], articulations = [], slurs = [] }) {
     if (!notes.length) return '';
+    const MH = 6.5;
+    const MS = MH * 2;
     const VB_W = 360;
-    const SYSTEM_H = 100;
-    const TOP_LINE_Y = 34;
+    const SYSTEM_H = 82;
+    const TOP_LINE_Y = 28;
     const LEFT_X = 16;
     const RIGHT_X = VB_W - 12;
-    const KEY_X = 56;
-    const PAD = 4;
-    const MIN_SPACE = 11;   // closest centre-to-centre distance between noteheads
-    const HEAD_RX = 5.0;
+    const KEY_X = 54;
+    const PAD = 3;
+    const MIN_SPACE = 9;   // closest centre-to-centre distance between noteheads
+    const HEAD_RX = 4.0;
+    const HEAD_RY = 2.6;
     const bpb = timeSig ? timeSig.num * 4 / timeSig.den : beatsPerBar;
     const sigNum = timeSig ? timeSig.num : beatsPerBar;
     const sigDen = timeSig ? timeSig.den : 4;
     const keyCount = Math.min(Math.abs(keySig) || 0, 7);
-    const sysStartX = KEY_X + keyCount * 8 + 26;
+    const keyStep = 6.5;
+    const sysStartX = KEY_X + keyCount * keyStep + 24;
     const avail = RIGHT_X - sysStartX;
     const gapArr = Array.isArray(gaps) ? gaps : [];
     const positiveGap = g => (typeof gapArr[g] === 'number' && gapArr[g] > 0 ? gapArr[g] : 0);
@@ -264,7 +268,7 @@ const Graphics = (() => {
     const perSystem = Math.max(1, Math.min(barsPerSystem, Math.floor(avail / need)));
     const barW = avail / perSystem;
     const systemCount = Math.ceil(nBars / perSystem);
-    const VB_H = systemCount * SYSTEM_H + 30;
+    const VB_H = systemCount * SYSTEM_H + 24;
     const renderH = width * (VB_H / VB_W);
 
     const xOf = new Map();
@@ -299,7 +303,7 @@ const Graphics = (() => {
     });
     const stemUpOf = e => (beamUp.has(e) ? beamUp.get(e) : e.note.pos <= 4);
 
-    let svg = `<svg viewBox="0 0 ${VB_W} ${VB_H}" width="${(width * 0.9).toFixed(1)}" height="${(renderH * 0.9).toFixed(1)}" xmlns="http://www.w3.org/2000/svg">`;
+    let svg = `<svg viewBox="0 0 ${VB_W} ${VB_H}" width="${width}" height="${renderH.toFixed(1)}" xmlns="http://www.w3.org/2000/svg">`;
     const clefName = CLEF_GLYPH[clef] ? clef : 'treble';
     const cmet = CLEF_GLYPH[clefName];
     const keyPos = keySig > 0 ? KEY_SHARP_POS : KEY_FLAT_POS;
@@ -308,7 +312,7 @@ const Graphics = (() => {
 
     for (let s = 0; s < systemCount; s++) {
       const topLineY = TOP_LINE_Y + s * SYSTEM_H;
-      const y = pos => topLineY + (8 - pos) * HALF;
+      const y = pos => topLineY + (8 - pos) * MH;
       const firstBar = s * perSystem;
       const bars = Math.min(perSystem, nBars - firstBar);
       const endX = sysStartX + bars * barW;
@@ -316,19 +320,19 @@ const Graphics = (() => {
 
       for (let p = 0; p <= 8; p += 2) svg += line(LEFT_X, y(p), endX, y(p), 1.0);
       svg += line(LEFT_X, y(8), LEFT_X, y(0), 1.0);
-      svg += clefAt(clefName, CLEF_MELODY_LEFT[clefName], STAFF_SPACE * CLEF_MELODY_SCALE, y(cmet.refPos), INK);
+      svg += clefAt(clefName, CLEF_MELODY_LEFT[clefName], MS * CLEF_MELODY_SCALE, y(cmet.refPos), INK);
       for (let i = 0; i < keyCount; i++) {
-        svg += `<text x="${KEY_X + i * 8}" y="${y(keyPos[i]) + 6}" font-size="17" fill="${INK}" font-family="Georgia, serif">${keyGlyph}</text>`;
+        svg += `<text x="${KEY_X + i * keyStep}" y="${y(keyPos[i]) + 5}" font-size="14" fill="${INK}" font-family="Georgia, serif">${keyGlyph}</text>`;
       }
       if (s === 0) {
-        const sigX = KEY_X + keyCount * 8 + 12;
-        svg += `<text x="${sigX}" y="${y(4) - 1}" font-size="24" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${sigNum}</text>`;
-        svg += `<text x="${sigX}" y="${y(2) + 14}" font-size="24" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${sigDen}</text>`;
+        const sigX = KEY_X + keyCount * keyStep + 10;
+        svg += `<text x="${sigX}" y="${y(4) - 0.5}" font-size="20" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${sigNum}</text>`;
+        svg += `<text x="${sigX}" y="${y(2) + 11}" font-size="20" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${sigDen}</text>`;
       }
       // Tempo marking — the song's own written tempo, placed above the staff
       // on the first system.
       if (s === 0 && bpm) {
-        svg += `<text x="${KEY_X}" y="${y(8) - 20}" font-size="13" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">\u2669=${bpm}</text>`;
+        svg += `<text x="${KEY_X}" y="${y(8) - 16}" font-size="11" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">\u2669=${bpm}</text>`;
       }
 
       for (let b = 1; b < bars; b++) svg += line(sysStartX + b * barW, y(8), sysStartX + b * barW, y(0), 1.0);
@@ -336,61 +340,61 @@ const Graphics = (() => {
       // thin when it only ends a system. End-repeat adds dots + thin + thick.
       const isLast = s === systemCount - 1;
       if (isLast && repeatEnd) {
-        svg += `<circle cx="${endX - 8}" cy="${y(5)}" r="1.5" fill="${INK}"/><circle cx="${endX - 8}" cy="${y(3)}" r="1.5" fill="${INK}"/>`;
-        svg += line(endX - 4, y(8), endX - 4, y(0), 1.0);
-        svg += line(endX, y(8), endX, y(0), 3.5);
+        svg += `<circle cx="${endX - 7}" cy="${y(5)}" r="1.2" fill="${INK}"/><circle cx="${endX - 7}" cy="${y(3)}" r="1.2" fill="${INK}"/>`;
+        svg += line(endX - 3.5, y(8), endX - 3.5, y(0), 1.0);
+        svg += line(endX, y(8), endX, y(0), 3.0);
       } else {
-        svg += line(endX, y(8), endX, y(0), isLast ? 3.5 : 1.0);
+        svg += line(endX, y(8), endX, y(0), isLast ? 3.0 : 1.0);
       }
       // Start-repeat at the very beginning of the tune.
       if (s === 0 && repeatStart) {
         const sx = sysStartX;
-        svg += line(sx, y(8), sx, y(0), 3.5);
-        svg += line(sx + 4, y(8), sx + 4, y(0), 1.0);
-        svg += `<circle cx="${sx + 8}" cy="${y(5)}" r="1.5" fill="${INK}"/><circle cx="${sx + 8}" cy="${y(3)}" r="1.5" fill="${INK}"/>`;
+        svg += line(sx, y(8), sx, y(0), 3.0);
+        svg += line(sx + 3.5, y(8), sx + 3.5, y(0), 1.0);
+        svg += `<circle cx="${sx + 7}" cy="${y(5)}" r="1.2" fill="${INK}"/><circle cx="${sx + 7}" cy="${y(3)}" r="1.2" fill="${INK}"/>`;
       }
 
       for (let b = 0; b < bars; b++) {
         barEvents[firstBar + b].forEach(e => {
           const x = xOf.get(e);
-          if (e.rest) { svg += restSVG(x, y, e.dur, INK); return; }
+          if (e.rest) { svg += restSVG(x, y, e.dur, INK, MS); return; }
           const note = e.note;
           const color = e.index === highlightIndex ? accentColor : INK;
           const noteY = y(note.pos);
           const up = stemUpOf(e);
-          if (e.index === highlightIndex) svg += `<circle cx="${x}" cy="${noteY}" r="11" fill="${accentColor}" opacity="0.18"/>`;
+          if (e.index === highlightIndex) svg += `<circle cx="${x}" cy="${noteY}" r="9" fill="${accentColor}" opacity="0.18"/>`;
           noteInfo[e.index] = { x, noteY, y, up, pos: note.pos, system: s };
           svg += `<g data-note-index="${e.index}">`;
           ledgerPositions(note.pos).forEach(p => {
-            svg += `<line x1="${x - 8}" y1="${y(p)}" x2="${x + 8}" y2="${y(p)}" stroke="${color}" stroke-width="1.0"/>`;
+            svg += `<line x1="${x - 6.5}" y1="${y(p)}" x2="${x + 6.5}" y2="${y(p)}" stroke="${color}" stroke-width="1.0"/>`;
           });
           if (note.accidental) {
-            svg += `<text x="${x - 13}" y="${noteY + 5}" font-size="15" fill="${color}" font-family="Georgia, serif">${note.accidental}</text>`;
+            svg += `<text x="${x - 11}" y="${noteY + 4}" font-size="12" fill="${color}" font-family="Georgia, serif">${note.accidental}</text>`;
           }
           const open = e.dur >= 2;
-          svg += `<ellipse cx="${x}" cy="${noteY}" rx="${HEAD_RX}" ry="3.2" fill="${open ? 'none' : color}" stroke="${open ? color : OPEN}" stroke-width="${open ? 1.4 : 1.0}" transform="rotate(-18 ${x} ${noteY})"/>`;
-          if (e.dur === 1.5 || e.dur === 3) svg += `<circle cx="${x + 9}" cy="${noteY}" r="1.4" fill="${color}"/>`;
+          svg += `<ellipse cx="${x}" cy="${noteY}" rx="${HEAD_RX}" ry="${HEAD_RY}" fill="${open ? 'none' : color}" stroke="${open ? color : OPEN}" stroke-width="${open ? 1.2 : 1.0}" transform="rotate(-18 ${x} ${noteY})"/>`;
+          if (e.dur === 1.5 || e.dur === 3) svg += `<circle cx="${x + 7.5}" cy="${noteY}" r="1.1" fill="${color}"/>`;
           if (e.dur < 4) {
-            const stemX = up ? x + HEAD_RX - 0.4 : x - HEAD_RX + 0.4;
-            const stemEnd = up ? noteY - 28 : noteY + 28;
-            svg += `<line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemEnd}" stroke="${color}" stroke-width="1.2"/>`;
+            const stemX = up ? x + HEAD_RX - 0.3 : x - HEAD_RX + 0.3;
+            const stemEnd = up ? noteY - 23 : noteY + 23;
+            svg += `<line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemEnd}" stroke="${color}" stroke-width="1.0"/>`;
           }
           // Articulations: placed above or below the note depending on stem direction.
           const artList = (articulations || []).filter(a => a && a.index === e.index);
           artList.forEach(a => {
             const placeAbove = !up;
-            const ay = placeAbove ? (up ? noteY - 38 : y(Math.max(note.pos, 8)) - 10) : (up ? y(Math.min(note.pos, 0)) + 12 : noteY + 38);
-            if (a.type === 'staccato') svg += `<circle cx="${x}" cy="${ay}" r="1.6" fill="${color}"/>`;
-            else if (a.type === 'tenuto') svg += `<line x1="${x - 5}" y1="${ay}" x2="${x + 5}" y2="${ay}" stroke="${color}" stroke-width="1.4"/>`;
-            else if (a.type === 'accent') svg += `<path d="M${x - 5} ${ay - 3} L${x + 5} ${ay} L${x - 5} ${ay + 3}" fill="none" stroke="${color}" stroke-width="1.3"/>`;
-            else if (a.type === 'marcato') svg += `<path d="M${x - 4} ${ay + 4} L${x} ${ay - 4} L${x + 4} ${ay + 4}" fill="none" stroke="${color}" stroke-width="1.3"/>`;
-            else if (a.type === 'fermata') svg += `<path d="M${x - 7} ${ay} Q${x} ${ay - 8} ${x + 7} ${ay}" fill="none" stroke="${color}" stroke-width="1.3"/><circle cx="${x}" cy="${ay - 1}" r="1.4" fill="${color}"/>`;
+            const ay = placeAbove ? (up ? noteY - 31 : y(Math.max(note.pos, 8)) - 8) : (up ? y(Math.min(note.pos, 0)) + 10 : noteY + 31);
+            if (a.type === 'staccato') svg += `<circle cx="${x}" cy="${ay}" r="1.3" fill="${color}"/>`;
+            else if (a.type === 'tenuto') svg += `<line x1="${x - 4}" y1="${ay}" x2="${x + 4}" y2="${ay}" stroke="${color}" stroke-width="1.2"/>`;
+            else if (a.type === 'accent') svg += `<path d="M${x - 4} ${ay - 2.5} L${x + 4} ${ay} L${x - 4} ${ay + 2.5}" fill="none" stroke="${color}" stroke-width="1.1"/>`;
+            else if (a.type === 'marcato') svg += `<path d="M${x - 3.5} ${ay + 3.5} L${x} ${ay - 3.5} L${x + 3.5} ${ay + 3.5}" fill="none" stroke="${color}" stroke-width="1.1"/>`;
+            else if (a.type === 'fermata') svg += `<path d="M${x - 6} ${ay} Q${x} ${ay - 7} ${x + 6} ${ay}" fill="none" stroke="${color}" stroke-width="1.1"/><circle cx="${x}" cy="${ay - 1}" r="1.1" fill="${color}"/>`;
           });
           svg += `</g>`;
           // Dynamics: placed below the staff near the note.
           const dynList = (dynamics || []).filter(d => d && d.index === e.index);
           dynList.forEach((d, di) => {
-            svg += `<text x="${x}" y="${y(0) + 26 + di * 10}" font-size="13" font-style="italic" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${String(d.text || '')}</text>`;
+            svg += `<text x="${x}" y="${y(0) + 21 + di * 8}" font-size="11" font-style="italic" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${String(d.text || '')}</text>`;
           });
         });
       }
@@ -404,28 +408,28 @@ const Graphics = (() => {
         if (g.length === 1) {
           const e = first;
           const up = stemUpOf(e);
-          const sx = xOf.get(e) + (up ? 5.5 : -5.5);
-          const sy = up ? y(e.note.pos) - 32 : y(e.note.pos) + 32;
-          const ex = sx - (up ? 9 : -9);
-          const ey = up ? y(e.note.pos) - 22 : y(e.note.pos) + 22;
+          const sx = xOf.get(e) + (up ? HEAD_RX - 0.3 : -HEAD_RX + 0.3);
+          const sy = up ? y(e.note.pos) - 23 : y(e.note.pos) + 23;
+          const ex = sx - (up ? 7 : -7);
+          const ey = up ? y(e.note.pos) - 15 : y(e.note.pos) + 15;
           const cx = (sx + ex) / 2;
           const cy = (sy + ey) / 2;
-          svg += `<path d="M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>`;
+          svg += `<path d="M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>`;
         } else if (g.length === 2) {
           const e1 = first;
           const e2 = last;
           const up = stemUpOf(e1);
-          const p1 = [xOf.get(e1) + (up ? 5.5 : -5.5), up ? y(e1.note.pos) - 32 : y(e1.note.pos) + 32];
-          const p2 = [xOf.get(e2) + (up ? 5.5 : -5.5), up ? y(e2.note.pos) - 32 : y(e2.note.pos) + 32];
+          const p1 = [xOf.get(e1) + (up ? HEAD_RX - 0.3 : -HEAD_RX + 0.3), up ? y(e1.note.pos) - 23 : y(e1.note.pos) + 23];
+          const p2 = [xOf.get(e2) + (up ? HEAD_RX - 0.3 : -HEAD_RX + 0.3), up ? y(e2.note.pos) - 23 : y(e2.note.pos) + 23];
           const midX = (p1[0] + p2[0]) / 2;
           const midY = (p1[1] + p2[1]) / 2;
-          svg += `<path d="M${p1[0]} ${p1[1]} Q${midX} ${midY} ${p2[0]} ${p2[1]}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>`;
+          svg += `<path d="M${p1[0]} ${p1[1]} Q${midX} ${midY} ${p2[0]} ${p2[1]}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>`;
         } else {
           const up = beamUp.get(first);
-          const ends = e => [xOf.get(e) + (up ? 5.5 : -5.5), y(e.note.pos) + (up ? -32 : 32)];
+          const ends = e => [xOf.get(e) + (up ? HEAD_RX - 0.3 : -HEAD_RX + 0.3), y(e.note.pos) + (up ? -23 : 23)];
           const [x1, y1] = ends(first);
           const [x2, y2] = ends(last);
-          svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3.0"/>`;
+          svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2.4"/>`;
         }
       });
     }
@@ -437,10 +441,10 @@ const Graphics = (() => {
       const b = noteInfo[sl.to];
       if (!a || !b || a.system !== b.system) return;
       const placeAbove = !(a.up || b.up);
-      const y1 = placeAbove ? Math.min(a.noteY, b.noteY) - 10 : Math.max(a.noteY, b.noteY) + 10;
+      const y1 = placeAbove ? Math.min(a.noteY, b.noteY) - 8 : Math.max(a.noteY, b.noteY) + 8;
       const midX = (a.x + b.x) / 2;
-      const bow = placeAbove ? -10 : 10;
-      svg += `<path d="M${a.x} ${y1} Q${midX} ${y1 + bow} ${b.x} ${y1}" fill="none" stroke="${INK}" stroke-width="1.2"/>`;
+      const bow = placeAbove ? -8 : 8;
+      svg += `<path d="M${a.x} ${y1} Q${midX} ${y1 + bow} ${b.x} ${y1}" fill="none" stroke="${INK}" stroke-width="1.0"/>`;
     });
 
     svg += `</svg>`;

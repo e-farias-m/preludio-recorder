@@ -658,8 +658,8 @@ button:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2
 
 .song-melody-svg svg {
   display: block;
-  width: 90%;
-  max-width: 468px;
+  width: 100%;
+  max-width: 520px;
   height: auto;
 }
 

@@ -86,7 +86,7 @@ for (const id of INSTRUMENT_ORDER) {
 {
   const heads = svg => (svg.match(/<ellipse/g) || []).length;
   const headAt = (svg, i) => (svg.match(/<ellipse[^>]*>/g) || [])[i];
-  const stems = svg => (svg.match(/<line x1="[^"]*" y1="[^"]*" x2="[^"]*" y2="[^"]*" stroke="var\(--dg-ink\)" stroke-width="1.2"\/>/g) || []).length;
+  const stems = svg => (svg.match(/<line x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)" stroke="var\(--dg-ink\)" stroke-width="1.0"\/>/g) || []).filter(l => { const m = l.match(/x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)"/); return m[1] === m[3] && Math.abs(parseFloat(m[2]) - parseFloat(m[4])) < 40; }).length;
   const notes = [
     { pos: 0, accidental: null, duration: 1 },
     { pos: 2, accidental: null, duration: 2 },
@@ -100,7 +100,7 @@ for (const id of INSTRUMENT_ORDER) {
   check(stems(svg) === 2, `quarter and half notes carry stems, whole does not (got ${stems(svg)})`);
   check(Graphics.melodySVG({ notes: [{ pos: 0 }] }).includes('fill="var(--dg-ink)"'), 'a note without a duration defaults to a filled quarter note');
   // A dotted quarter note (1.5 beats) carries a dot.
-  check(Graphics.melodySVG({ notes: [{ pos: 2, duration: 1.5 }] }).includes('r="1.4"'), 'a dotted quarter note draws its dot');
+  check(Graphics.melodySVG({ notes: [{ pos: 2, duration: 1.5 }] }).includes('r="1.1"'), 'a dotted quarter note draws its dot');
   // Rests come from the engraved Bravura rest glyph, not a fake notehead.
   check(Graphics.melodySVG({ notes: [{ pos: 2, duration: 1 }], gaps: [1] }).includes('class="rest rest-quarter"'), 'a quarter rest is drawn from the engraved rest glyph');
   // The song's written tempo is drawn as a marking above the staff.
@@ -110,10 +110,10 @@ for (const id of INSTRUMENT_ORDER) {
 // ── Melody staff shows 4/4 and places bar lines on the beats ───────────────
 {
   const barLines = svg => {
-    const lines = svg.match(/<line x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)" stroke="var\(--dg-ink\)" stroke-width="(1(?:\.0)?|3\.5)"/g) || [];
+    const lines = svg.match(/<line x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)" stroke="var\(--dg-ink\)" stroke-width="(1(?:\.0)?|3(?:\.0|\.5)?)"/g) || [];
     return lines.filter(l => {
       const m = l.match(/x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)"/);
-      return m[1] === m[3] && m[2] !== m[4] && m[1] !== '16';
+      return m[1] === m[3] && Math.abs(parseFloat(m[2]) - parseFloat(m[4])) >= 40 && m[1] !== '16';
     }).length;
   };
   const q = n => Array.from({ length: n }, () => ({ pos: 2, accidental: null, duration: 1 }));
@@ -138,13 +138,13 @@ for (const id of INSTRUMENT_ORDER) {
   const q = n => Array.from({ length: n }, () => ({ pos: 2, accidental: null, duration: 1 }));
   const base = { notes: q(4), accentColor: '#e0a020' };
   const withRepeats = Graphics.melodySVG({ ...base, repeatStart: true, repeatEnd: true });
-  check((withRepeats.match(/r="1.5"/g) || []).length >= 4, 'start and end repeat signs draw repeat dots');
+  check((withRepeats.match(/r="1.2"/g) || []).length >= 4, 'start and end repeat signs draw repeat dots');
   const withDyn = Graphics.melodySVG({ ...base, dynamics: [{ index: 0, text: 'f' }] });
   check(withDyn.includes('>f</text>'), 'a dynamic marking is drawn below the staff');
   const withArt = Graphics.melodySVG({ ...base, articulations: [{ index: 0, type: 'staccato' }] });
-  check(withArt.includes('r="1.6"'), 'a staccato articulation dot is drawn');
+  check(withArt.includes('r="1.3"'), 'a staccato articulation dot is drawn');
   const withSlur = Graphics.melodySVG({ notes: q(2), accentColor: '#e0a020', slurs: [{ from: 0, to: 1 }] });
-  check(withSlur.includes('stroke-width="1.2"') && withSlur.includes(' Q'), 'a slur arc is drawn between notes');
+  check(withSlur.includes('stroke-width="1.0"') && withSlur.includes(' Q'), 'a slur arc is drawn between notes');
 }
 
 console.log(`${pass} passed, ${fail} failed`);
