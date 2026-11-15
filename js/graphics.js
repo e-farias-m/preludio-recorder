@@ -222,9 +222,9 @@ const Graphics = (() => {
     const RIGHT_X = VB_W - 12;
     const KEY_X = 54;
     const PAD = 3;
-    const MIN_SPACE = 11;   // closest centre-to-centre distance between noteheads
-    const HEAD_RX = 5.2;
-    const HEAD_RY = 3.3;
+    const MIN_SPACE = 12;   // closest centre-to-centre distance between noteheads
+    const HEAD_RX = 6.0;
+    const HEAD_RY = 3.8;
     const bpb = timeSig ? timeSig.num * 4 / timeSig.den : beatsPerBar;
     const sigNum = timeSig ? timeSig.num : beatsPerBar;
     const sigDen = timeSig ? timeSig.den : 4;
@@ -362,33 +362,33 @@ const Graphics = (() => {
           const color = e.index === highlightIndex ? accentColor : INK;
           const noteY = y(note.pos);
           const up = stemUpOf(e);
-          if (e.index === highlightIndex) svg += `<circle cx="${x}" cy="${noteY}" r="12" fill="${accentColor}" opacity="0.18"/>`;
+          if (e.index === highlightIndex) svg += `<circle cx="${x}" cy="${noteY}" r="14" fill="${accentColor}" opacity="0.18"/>`;
           noteInfo[e.index] = { x, noteY, y, up, pos: note.pos, system: s };
           svg += `<g data-note-index="${e.index}">`;
           ledgerPositions(note.pos).forEach(p => {
-            svg += `<line x1="${x - 8.5}" y1="${y(p)}" x2="${x + 8.5}" y2="${y(p)}" stroke="${color}" stroke-width="1.0"/>`;
+            svg += `<line x1="${x - 10}" y1="${y(p)}" x2="${x + 10}" y2="${y(p)}" stroke="${color}" stroke-width="1.1"/>`;
           });
           if (note.accidental) {
-            svg += `<text x="${x - 14}" y="${noteY + 5}" font-size="16" fill="${color}" font-family="Georgia, serif">${note.accidental}</text>`;
+            svg += `<text x="${x - 16}" y="${noteY + 6}" font-size="18" fill="${color}" font-family="Georgia, serif">${note.accidental}</text>`;
           }
           const open = e.dur >= 2;
-          svg += `<ellipse cx="${x}" cy="${noteY}" rx="${HEAD_RX}" ry="${HEAD_RY}" fill="${open ? 'none' : color}" stroke="${open ? color : OPEN}" stroke-width="${open ? 1.5 : 1.2}" transform="rotate(-18 ${x} ${noteY})"/>`;
-          if (e.dur === 1.5 || e.dur === 3) svg += `<circle cx="${x + 9.5}" cy="${noteY}" r="1.4" fill="${color}"/>`;
+          svg += `<ellipse cx="${x}" cy="${noteY}" rx="${HEAD_RX}" ry="${HEAD_RY}" fill="${open ? 'none' : color}" stroke="${open ? color : OPEN}" stroke-width="${open ? 1.7 : 1.4}" transform="rotate(-18 ${x} ${noteY})"/>`;
+          if (e.dur === 1.5 || e.dur === 3) svg += `<circle cx="${x + 11}" cy="${noteY}" r="1.6" fill="${color}"/>`;
           if (e.dur < 4) {
-            const stemX = up ? x + HEAD_RX - 0.3 : x - HEAD_RX + 0.3;
-            const stemEnd = up ? noteY - 30 : noteY + 30;
-            svg += `<line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemEnd}" stroke="${color}" stroke-width="1.2"/>`;
+            const stemX = up ? x + HEAD_RX - 0.4 : x - HEAD_RX + 0.4;
+            const stemEnd = up ? noteY - 35 : noteY + 35;
+            svg += `<line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemEnd}" stroke="${color}" stroke-width="1.4"/>`;
           }
           // Articulations: placed above or below the note depending on stem direction.
           const artList = (articulations || []).filter(a => a && a.index === e.index);
           artList.forEach(a => {
             const placeAbove = !up;
-            const ay = placeAbove ? (up ? noteY - 38 : y(Math.max(note.pos, 8)) - 10) : (up ? y(Math.min(note.pos, 0)) + 12 : noteY + 38);
-            if (a.type === 'staccato') svg += `<circle cx="${x}" cy="${ay}" r="1.7" fill="${color}"/>`;
-            else if (a.type === 'tenuto') svg += `<line x1="${x - 5}" y1="${ay}" x2="${x + 5}" y2="${ay}" stroke="${color}" stroke-width="1.5"/>`;
-            else if (a.type === 'accent') svg += `<path d="M${x - 5} ${ay - 3.5} L${x + 5} ${ay} L${x - 5} ${ay + 3.5}" fill="none" stroke="${color}" stroke-width="1.4"/>`;
-            else if (a.type === 'marcato') svg += `<path d="M${x - 4.5} ${ay + 4.5} L${x} ${ay - 4.5} L${x + 4.5} ${ay + 4.5}" fill="none" stroke="${color}" stroke-width="1.4"/>`;
-            else if (a.type === 'fermata') svg += `<path d="M${x - 8} ${ay} Q${x} ${ay - 9} ${x + 8} ${ay}" fill="none" stroke="${color}" stroke-width="1.4"/><circle cx="${x}" cy="${ay - 1}" r="1.5" fill="${color}"/>`;
+            const ay = placeAbove ? (up ? noteY - 44 : y(Math.max(note.pos, 8)) - 12) : (up ? y(Math.min(note.pos, 0)) + 14 : noteY + 44);
+            if (a.type === 'staccato') svg += `<circle cx="${x}" cy="${ay}" r="2" fill="${color}"/>`;
+            else if (a.type === 'tenuto') svg += `<line x1="${x - 6}" y1="${ay}" x2="${x + 6}" y2="${ay}" stroke="${color}" stroke-width="1.7"/>`;
+            else if (a.type === 'accent') svg += `<path d="M${x - 6} ${ay - 4} L${x + 6} ${ay} L${x - 6} ${ay + 4}" fill="none" stroke="${color}" stroke-width="1.6"/>`;
+            else if (a.type === 'marcato') svg += `<path d="M${x - 5} ${ay + 5} L${x} ${ay - 5} L${x + 5} ${ay + 5}" fill="none" stroke="${color}" stroke-width="1.6"/>`;
+            else if (a.type === 'fermata') svg += `<path d="M${x - 9} ${ay} Q${x} ${ay - 10} ${x + 9} ${ay}" fill="none" stroke="${color}" stroke-width="1.6"/><circle cx="${x}" cy="${ay - 1}" r="1.7" fill="${color}"/>`;
           });
           svg += `</g>`;
           // Dynamics: placed below the staff near the note.
@@ -408,28 +408,28 @@ const Graphics = (() => {
         if (g.length === 1) {
           const e = first;
           const up = stemUpOf(e);
-          const sx = xOf.get(e) + (up ? HEAD_RX - 0.3 : -HEAD_RX + 0.3);
-          const sy = up ? y(e.note.pos) - 30 : y(e.note.pos) + 30;
-          const ex = sx - (up ? 9 : -9);
-          const ey = up ? y(e.note.pos) - 20 : y(e.note.pos) + 20;
+          const sx = xOf.get(e) + (up ? HEAD_RX - 0.4 : -HEAD_RX + 0.4);
+          const sy = up ? y(e.note.pos) - 35 : y(e.note.pos) + 35;
+          const ex = sx - (up ? 10 : -10);
+          const ey = up ? y(e.note.pos) - 23 : y(e.note.pos) + 23;
           const cx = (sx + ex) / 2;
           const cy = (sy + ey) / 2;
-          svg += `<path d="M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}" fill="none" stroke="${color}" stroke-width="2.0" stroke-linecap="round"/>`;
+          svg += `<path d="M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}" fill="none" stroke="${color}" stroke-width="2.3" stroke-linecap="round"/>`;
         } else if (g.length === 2) {
           const e1 = first;
           const e2 = last;
           const up = stemUpOf(e1);
-          const p1 = [xOf.get(e1) + (up ? HEAD_RX - 0.3 : -HEAD_RX + 0.3), up ? y(e1.note.pos) - 30 : y(e1.note.pos) + 30];
-          const p2 = [xOf.get(e2) + (up ? HEAD_RX - 0.3 : -HEAD_RX + 0.3), up ? y(e2.note.pos) - 30 : y(e2.note.pos) + 30];
+          const p1 = [xOf.get(e1) + (up ? HEAD_RX - 0.4 : -HEAD_RX + 0.4), up ? y(e1.note.pos) - 35 : y(e1.note.pos) + 35];
+          const p2 = [xOf.get(e2) + (up ? HEAD_RX - 0.4 : -HEAD_RX + 0.4), up ? y(e2.note.pos) - 35 : y(e2.note.pos) + 35];
           const midX = (p1[0] + p2[0]) / 2;
           const midY = (p1[1] + p2[1]) / 2;
-          svg += `<path d="M${p1[0]} ${p1[1]} Q${midX} ${midY} ${p2[0]} ${p2[1]}" fill="none" stroke="${color}" stroke-width="2.0" stroke-linecap="round"/>`;
+          svg += `<path d="M${p1[0]} ${p1[1]} Q${midX} ${midY} ${p2[0]} ${p2[1]}" fill="none" stroke="${color}" stroke-width="2.3" stroke-linecap="round"/>`;
         } else {
           const up = beamUp.get(first);
-          const ends = e => [xOf.get(e) + (up ? HEAD_RX - 0.3 : -HEAD_RX + 0.3), y(e.note.pos) + (up ? -30 : 30)];
+          const ends = e => [xOf.get(e) + (up ? HEAD_RX - 0.4 : -HEAD_RX + 0.4), y(e.note.pos) + (up ? -35 : 35)];
           const [x1, y1] = ends(first);
           const [x2, y2] = ends(last);
-          svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3.1"/>`;
+          svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3.6"/>`;
         }
       });
     }
@@ -441,10 +441,10 @@ const Graphics = (() => {
       const b = noteInfo[sl.to];
       if (!a || !b || a.system !== b.system) return;
       const placeAbove = !(a.up || b.up);
-      const y1 = placeAbove ? Math.min(a.noteY, b.noteY) - 10 : Math.max(a.noteY, b.noteY) + 10;
+      const y1 = placeAbove ? Math.min(a.noteY, b.noteY) - 12 : Math.max(a.noteY, b.noteY) + 12;
       const midX = (a.x + b.x) / 2;
-      const bow = placeAbove ? -10 : 10;
-      svg += `<path d="M${a.x} ${y1} Q${midX} ${y1 + bow} ${b.x} ${y1}" fill="none" stroke="${INK}" stroke-width="1.2"/>`;
+      const bow = placeAbove ? -12 : 12;
+      svg += `<path d="M${a.x} ${y1} Q${midX} ${y1 + bow} ${b.x} ${y1}" fill="none" stroke="${INK}" stroke-width="1.4"/>`;
     });
 
     svg += `</svg>`;
