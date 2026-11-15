@@ -314,8 +314,8 @@ const Graphics = (() => {
       const endX = sysStartX + bars * barW;
       const line = (x1, y1, x2, y2, w) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${INK}" stroke-width="${w}"/>`;
 
-      for (let p = 0; p <= 8; p += 2) svg += line(LEFT_X, y(p), endX, y(p), 1.3);
-      svg += line(LEFT_X, y(8), LEFT_X, y(0), 1.3);
+      for (let p = 0; p <= 8; p += 2) svg += line(LEFT_X, y(p), endX, y(p), 1.0);
+      svg += line(LEFT_X, y(8), LEFT_X, y(0), 1.0);
       svg += clefAt(clefName, CLEF_MELODY_LEFT[clefName], STAFF_SPACE * CLEF_MELODY_SCALE, y(cmet.refPos), INK);
       for (let i = 0; i < keyCount; i++) {
         svg += `<text x="${KEY_X + i * 8}" y="${y(keyPos[i]) + 6}" font-size="17" fill="${INK}" font-family="Georgia, serif">${keyGlyph}</text>`;
@@ -331,22 +331,22 @@ const Graphics = (() => {
         svg += `<text x="${KEY_X}" y="${y(8) - 20}" font-size="13" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">\u2669=${bpm}</text>`;
       }
 
-      for (let b = 1; b < bars; b++) svg += line(sysStartX + b * barW, y(8), sysStartX + b * barW, y(0), 1.3);
+      for (let b = 1; b < bars; b++) svg += line(sysStartX + b * barW, y(8), sysStartX + b * barW, y(0), 1.0);
       // Barline at end of this system/bar-group: thick for the tune's end,
       // thin when it only ends a system. End-repeat adds dots + thin + thick.
       const isLast = s === systemCount - 1;
       if (isLast && repeatEnd) {
         svg += `<circle cx="${endX - 8}" cy="${y(5)}" r="1.5" fill="${INK}"/><circle cx="${endX - 8}" cy="${y(3)}" r="1.5" fill="${INK}"/>`;
-        svg += line(endX - 4, y(8), endX - 4, y(0), 1.3);
+        svg += line(endX - 4, y(8), endX - 4, y(0), 1.0);
         svg += line(endX, y(8), endX, y(0), 3.5);
       } else {
-        svg += line(endX, y(8), endX, y(0), isLast ? 3.5 : 1.3);
+        svg += line(endX, y(8), endX, y(0), isLast ? 3.5 : 1.0);
       }
       // Start-repeat at the very beginning of the tune.
       if (s === 0 && repeatStart) {
         const sx = sysStartX;
         svg += line(sx, y(8), sx, y(0), 3.5);
-        svg += line(sx + 4, y(8), sx + 4, y(0), 1.3);
+        svg += line(sx + 4, y(8), sx + 4, y(0), 1.0);
         svg += `<circle cx="${sx + 8}" cy="${y(5)}" r="1.5" fill="${INK}"/><circle cx="${sx + 8}" cy="${y(3)}" r="1.5" fill="${INK}"/>`;
       }
 
@@ -362,18 +362,18 @@ const Graphics = (() => {
           noteInfo[e.index] = { x, noteY, y, up, pos: note.pos, system: s };
           svg += `<g data-note-index="${e.index}">`;
           ledgerPositions(note.pos).forEach(p => {
-            svg += `<line x1="${x - 9}" y1="${y(p)}" x2="${x + 9}" y2="${y(p)}" stroke="${color}" stroke-width="1.3"/>`;
+            svg += `<line x1="${x - 8}" y1="${y(p)}" x2="${x + 8}" y2="${y(p)}" stroke="${color}" stroke-width="1.0"/>`;
           });
           if (note.accidental) {
-            svg += `<text x="${x - 13}" y="${noteY + 5}" font-size="17" fill="${color}" font-family="Georgia, serif">${note.accidental}</text>`;
+            svg += `<text x="${x - 13}" y="${noteY + 5}" font-size="15" fill="${color}" font-family="Georgia, serif">${note.accidental}</text>`;
           }
           const open = e.dur >= 2;
-          svg += `<ellipse cx="${x}" cy="${noteY}" rx="${HEAD_RX}" ry="3.6" fill="${open ? 'none' : color}" stroke="${open ? color : OPEN}" stroke-width="${open ? 1.6 : 1.2}" transform="rotate(-18 ${x} ${noteY})"/>`;
-          if (e.dur === 1.5 || e.dur === 3) svg += `<circle cx="${x + 10}" cy="${noteY}" r="1.4" fill="${color}"/>`;
+          svg += `<ellipse cx="${x}" cy="${noteY}" rx="${HEAD_RX}" ry="3.2" fill="${open ? 'none' : color}" stroke="${open ? color : OPEN}" stroke-width="${open ? 1.4 : 1.0}" transform="rotate(-18 ${x} ${noteY})"/>`;
+          if (e.dur === 1.5 || e.dur === 3) svg += `<circle cx="${x + 9}" cy="${noteY}" r="1.4" fill="${color}"/>`;
           if (e.dur < 4) {
-            const stemX = up ? x + 5.5 : x - 5.5;
-            const stemEnd = up ? noteY - 32 : noteY + 32;
-            svg += `<line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemEnd}" stroke="${color}" stroke-width="1.4"/>`;
+            const stemX = up ? x + HEAD_RX - 0.4 : x - HEAD_RX + 0.4;
+            const stemEnd = up ? noteY - 28 : noteY + 28;
+            svg += `<line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemEnd}" stroke="${color}" stroke-width="1.2"/>`;
           }
           // Articulations: placed above or below the note depending on stem direction.
           const artList = (articulations || []).filter(a => a && a.index === e.index);
