@@ -99,12 +99,14 @@ for (const id of INSTRUMENT_ORDER) {
   check(!(headAt(svg, 2) || '').includes('fill="var(--dg-ink)"') && (headAt(svg, 2) || '').includes('fill="none"'), 'a whole note is a hollow notehead');
   check(stems(svg) === 2, `quarter and half notes carry stems, whole does not (got ${stems(svg)})`);
   check(Graphics.melodySVG({ notes: [{ pos: 0 }] }).includes('fill="var(--dg-ink)"'), 'a note without a duration defaults to a filled quarter note');
+  // A dotted quarter note (1.5 beats) carries a dot.
+  check(Graphics.melodySVG({ notes: [{ pos: 2, duration: 1.5 }] }).includes('r="1.6"'), 'a dotted quarter note draws its dot');
 }
 
 // ── Melody staff shows 4/4 and places bar lines on the beats ───────────────
 {
   const barLines = svg => {
-    const lines = svg.match(/<line x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)" stroke="var\(--dg-ink\)" stroke-width="1.3"\/>/g) || [];
+    const lines = svg.match(/<line x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)" stroke="var\(--dg-ink\)" stroke-width="(1\.3|3\.5)"/g) || [];
     return lines.filter(l => {
       const m = l.match(/x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)"/);
       return m[1] === m[3] && m[2] !== m[4] && m[1] !== '16';

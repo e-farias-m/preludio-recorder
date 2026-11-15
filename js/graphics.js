@@ -326,12 +326,9 @@ const Graphics = (() => {
       }
 
       for (let b = 1; b < bars; b++) svg += line(sysStartX + b * barW, y(8), sysStartX + b * barW, y(0), 1.3);
-      if (s === systemCount - 1) {
-        svg += line(endX - 4, y(8), endX - 4, y(0), 1.3);
-        svg += line(endX, y(8), endX, y(0), 3.5);
-      } else {
-        svg += line(endX, y(8), endX, y(0), 1.3);
-      }
+      // The closing bar line of the piece is thick; a line that only ends a
+      // system (but not the tune) stays thin, like real engraving.
+      svg += line(endX, y(8), endX, y(0), s === systemCount - 1 ? 3.5 : 1.3);
 
       for (let b = 0; b < bars; b++) {
         barEvents[firstBar + b].forEach(e => {
@@ -351,7 +348,7 @@ const Graphics = (() => {
           }
           const open = e.dur >= 2;
           svg += `<ellipse cx="${x}" cy="${noteY}" rx="${HEAD_RX}" ry="4.2" fill="${open ? 'none' : color}" stroke="${open ? color : OPEN}" stroke-width="${open ? 1.8 : 1.2}" transform="rotate(-18 ${x} ${noteY})"/>`;
-          if (e.dur === 1.5) svg += `<circle cx="${x + 10}" cy="${noteY}" r="1.6" fill="${color}"/>`;
+          if (e.dur === 1.5 || e.dur === 3) svg += `<circle cx="${x + 10}" cy="${noteY}" r="1.6" fill="${color}"/>`;
           if (e.dur < 4) {
             const stemX = up ? x + 5.5 : x - 5.5;
             const stemEnd = up ? noteY - 32 : noteY + 32;
