@@ -268,7 +268,17 @@ const Graphics = (() => {
     const perSystem = Math.max(1, Math.min(barsPerSystem, Math.floor(avail / need)));
     const barW = avail / perSystem;
     const systemCount = Math.ceil(nBars / perSystem);
-    const VB_H = systemCount * SYSTEM_H + 24;
+    // Ledger notes reach above and below the staff, so the layout grows with
+    // the tune's real range: a normal score keeps the fixed SYSTEM_H rhythm,
+    // while ledger notes get taller systems instead of being clipped.
+    const lowPos = Math.min(0, ...notes.map(n => n.pos));
+    const highPos = Math.max(8, ...notes.map(n => n.pos));
+    const topReach = Math.max(0, (highPos - 8) * MH + HEAD_RY);  // ink above the top line
+    const lowDepth = Math.max(0, (8 - lowPos) * MH + HEAD_RY);   // ink below it
+    const sysStep = SYSTEM_H + Math.max(0, lowDepth - (8 * MH + HEAD_RY)) + Math.max(0, topReach - HEAD_RY);
+    const topFirstY = Math.max(TOP_LINE_Y, topReach + 12);
+    const VB_H = Math.ceil(topFirstY + (systemCount - 1) * sysStep
+      + Math.max(SYSTEM_H - TOP_LINE_Y + 24, lowDepth + 12));
     const renderH = width * (VB_H / VB_W);
 
     const xOf = new Map();
@@ -311,7 +321,7 @@ const Graphics = (() => {
     const noteInfo = {};
 
     for (let s = 0; s < systemCount; s++) {
-      const topLineY = TOP_LINE_Y + s * SYSTEM_H;
+      const topLineY = topFirstY + s * sysStep;
       const y = pos => topLineY + (8 - pos) * MH;
       const firstBar = s * perSystem;
       const bars = Math.min(perSystem, nBars - firstBar);
@@ -771,183 +781,5 @@ const Graphics = (() => {
     }
   }
 
-  // ── SONG SCORE (multi-note staff for full songs) ───────────────────────────
-  function songStaffSVG({ notes, clef = 'treble', accentColor = 'var(--accent-warm)', keySig = 0, timeSig = null }) {
-    const SPACING = 48;
-    const MARGIN_R = 20;
-    const H = 220;
-    const lineColor = '#524F70';
-    const noteColor = accentColor;
-
-    // ── Compute layout: clef + key sig + time sig width → note start X ──
-    const SHARP_STEPS = [8, 5, 2, 6, 3, 7, 4];
-    const FLAT_STEPS  = [4, 7, 3, 6, 2, 5, 8];
-    let accX = 52;
-    if (keySig > 0)      accX += keySig * 14 + 8;
-    else if (keySig < 0) accX += Math.abs(keySig) * 14 + 8;
-    const noteStartX = accX + (timeSig ? 34 : 14);
-
-    const totalW = Math.ceil(noteStartX + notes.length * SPACING + MARGIN_R);
-
-    let s = `<svg viewBox="0 0 ${totalW} ${H}" width="${totalW}" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
-
-    // Staff lines
-    for (let i = 0; i <= 8; i += 2) {
-      const y = yForPos(i);
-      s += `<line x1="0" y1="${y}" x2="${totalW}" y2="${y}" stroke="${lineColor}" stroke-width="1.5"/>`;
-    }
-
-    // Clef
-    if (clef === 'treble') {
-      s += `<text x="10" y="${STAFF_BOTTOM_Y + 8}" font-size="121" font-family="Georgia, 'Apple Symbols', serif" fill="${lineColor}">&#119070;</text>`;
-    } else {
-      s += `<text x="12" y="${yForPos(3) + 10}" font-size="77" font-family="Georgia, 'Apple Symbols', serif" fill="${lineColor}">&#119074;</text>`;
-    }
-
-    // ── Key signature ────────────────────────────────────────────────────
-    accX = 52;
-    if (keySig > 0) {
-      for (let i = 0; i < keySig && i < SHARP_STEPS.length; i++) {
-        const y = yForPos(SHARP_STEPS[i]);
-        s += `<text x="${accX + i * 14}" y="${y + 7}" font-size="22" fill="${lineColor}" font-family="Georgia, serif">♯</text>`;
-      }
-      accX += keySig * 14 + 8;
-    } else if (keySig < 0) {
-      const nFlat = Math.abs(keySig);
-      for (let i = 0; i < nFlat && i < FLAT_STEPS.length; i++) {
-        const y = yForPos(FLAT_STEPS[i]);
-        s += `<text x="${accX + i * 14}" y="${y + 18}" font-size="22" fill="${lineColor}" font-family="Georgia, serif">♭</text>`;
-      }
-      accX += nFlat * 14 + 8;
-    }
-
-    // ── Time signature ──────────────────────────────────────────────────
-    if (timeSig) {
-      const tsX = accX + 4;
-      s += `<text x="${tsX}" y="${yForPos(5) + 2}" font-size="26" fill="${lineColor}" font-family="Georgia, serif" text-anchor="middle">${timeSig.num}</text>`;
-      s += `<text x="${tsX}" y="${yForPos(1) + 2}" font-size="26" fill="${lineColor}" font-family="Georgia, serif" text-anchor="middle">${timeSig.den}</text>`;
-    }
-
-    // ── Bar lines (every 4 beats) ──────────────────────────────────────
-    const staffTop = yForPos(8) - HALF / 2;
-    const staffBot = yForPos(0) + HALF / 2;
-    let beatAccum = 0;
-    for (let i = 0; i < notes.length; i++) {
-      const dur = notes[i].dur || 'q';
-      const beats = dur === 'h' ? 2 : dur === 'w' ? 4 : dur === '8' ? 0.5 : 1;
-      beatAccum += beats;
-      if (beatAccum >= 4 || i === notes.length - 1) {
-        if (i < notes.length - 1) {
-          const x = noteStartX + (i + 1) * SPACING - SPACING / 2;
-          s += `<line x1="${x}" y1="${staffTop}" x2="${x}" y2="${staffBot}" stroke="${lineColor}" stroke-width="1.5"/>`;
-        }
-        beatAccum = 0;
-      }
-    }
-
-    // End bar line (thin left, thick right)
-    const endX = noteStartX + notes.length * SPACING - SPACING / 2;
-    s += `<line x1="${endX}" y1="${staffTop}" x2="${endX}" y2="${staffBot}" stroke="${lineColor}" stroke-width="1.5"/>`;
-    s += `<line x1="${endX + 3}" y1="${staffTop}" x2="${endX + 3}" y2="${staffBot}" stroke="${lineColor}" stroke-width="4"/>`;
-
-    // ── Precompute beam groups ──────────────────────────────────────────
-    const beamGroups = [];
-    let grpStart = -1;
-    for (let i = 0; i < notes.length; i++) {
-      const d = notes[i].dur || 'q';
-      if (d === '8') {
-        if (grpStart === -1) grpStart = i;
-        if (i - grpStart === 1) {
-          beamGroups.push({ start: grpStart, end: i });
-          grpStart = -1;
-        }
-      } else {
-        if (grpStart !== -1 && i - grpStart >= 2) beamGroups.push({ start: grpStart, end: i - 1 });
-        grpStart = -1;
-      }
-    }
-    if (grpStart !== -1 && notes.length - grpStart >= 2) {
-      beamGroups.push({ start: grpStart, end: notes.length - 1 });
-    }
-
-    const beamLookup = {};
-    beamGroups.forEach(g => { beamLookup[g.start] = g.end; });
-    const beamedSet = new Set();
-    beamGroups.forEach(g => { for (let j = g.start; j <= g.end; j++) beamedSet.add(j); });
-
-    // ── Notes ───────────────────────────────────────────────────────────
-    notes.forEach((note, i) => {
-      const x = noteStartX + i * SPACING;
-      const y = yForPos(note.staffStep);
-      const stemUp = note.staffStep <= 4;
-      const dur = note.dur || 'q';
-      const isHalf = dur === 'h';
-      const isWhole = dur === 'w';
-      const isEighth = dur === '8';
-      const filled = !isHalf && !isWhole;
-      const isBeamed = beamedSet.has(i);
-      const isBeamStart = beamLookup[i] !== undefined;
-
-      // Ledger lines
-      ledgerPositions(note.staffStep).forEach(p => {
-        const ly = yForPos(p);
-        s += `<line x1="${x - 12}" y1="${ly}" x2="${x + 12}" y2="${ly}" stroke="${lineColor}" stroke-width="1.5"/>`;
-      });
-
-      // Accidental
-      if (note.accidental) {
-        s += `<text x="${x - 22}" y="${y + 6}" font-size="20" fill="${accentColor}" font-family="Georgia, serif">${note.accidental}</text>`;
-      }
-
-      s += `<g data-note-index="${i}">`;
-
-      // Notehead
-      if (filled) {
-        s += `<ellipse cx="${x}" cy="${y}" rx="7" ry="5" fill="${noteColor}" transform="rotate(-18 ${x} ${y})"/>`;
-      } else {
-        s += `<ellipse cx="${x}" cy="${y}" rx="7" ry="5" fill="none" stroke="${noteColor}" stroke-width="2.5" transform="rotate(-18 ${x} ${y})"/>`;
-      }
-
-      // Stem (no stem for whole notes)
-      if (!isWhole) {
-        if (stemUp) {
-          s += `<line x1="${x + 6.5}" y1="${y}" x2="${x + 6.5}" y2="${y - 42}" stroke="${noteColor}" stroke-width="2"/>`;
-        } else {
-          s += `<line x1="${x - 6.5}" y1="${y}" x2="${x - 6.5}" y2="${y + 42}" stroke="${noteColor}" stroke-width="2"/>`;
-        }
-
-        if (isEighth && isBeamStart) {
-          // Draw beam connecting this note to the last note in the group
-          const lastIdx = beamLookup[i];
-          const lastX = noteStartX + lastIdx * SPACING;
-          const lastNote = notes[lastIdx];
-          const lastY = yForPos(lastNote.staffStep);
-          const lastStemUp = lastNote.staffStep <= 4;
-          const bTipX1 = stemUp ? x + 6.5 : x - 6.5;
-          const bTipY1 = stemUp ? y - 42 : y + 42;
-          const bTipX2 = lastStemUp ? lastX + 6.5 : lastX - 6.5;
-          const bTipY2 = lastStemUp ? lastY - 42 : lastY + 42;
-          const bw = 8;
-          if (stemUp) {
-            s += `<polygon points="${bTipX1},${bTipY1} ${bTipX2},${bTipY2} ${bTipX2},${bTipY2 + bw} ${bTipX1},${bTipY1 + bw}" fill="${noteColor}"/>`;
-          } else {
-            s += `<polygon points="${bTipX1},${bTipY1} ${bTipX2},${bTipY2} ${bTipX2},${bTipY2 - bw} ${bTipX1},${bTipY1 - bw}" fill="${noteColor}"/>`;
-          }
-        } else if (isEighth && !isBeamed) {
-          // Individual flag for standalone eighth notes
-          const flagX = stemUp ? x + 6.5 : x - 6.5;
-          const flagY = stemUp ? y - 42 : y + 42;
-          s += `<path d="M${flagX} ${flagY} Q${flagX + 12} ${flagY + 6} ${flagX + 6} ${flagY + 16}" stroke="${noteColor}" stroke-width="2" fill="none"/>`;
-        }
-        // Beamed notes that are not the beam start: no flag, no beam drawn
-      }
-
-      s += `</g>`;
-    });
-
-    s += `</svg>`;
-    return s;
-  }
-
-  return { staffSVG, songStaffSVG, melodySVG, fingeringSVG, recorderFingeringSVG, valveFingeringSVG, tromboneFingeringSVG, woodwindFingeringSVG, instrumentIconSVG, yForPos, ledgerPositions };
+  return { staffSVG, melodySVG, fingeringSVG, recorderFingeringSVG, valveFingeringSVG, tromboneFingeringSVG, woodwindFingeringSVG, instrumentIconSVG, yForPos, ledgerPositions };
 })();
