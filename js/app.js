@@ -2010,7 +2010,7 @@ function renderSongPresentPhase(inst, lesson) {
     melodyNotes.push({ pos: n.staffStep, accidental: n.accidental, duration });
   });
   const melodySvg = melodyNotes.length
-    ? Graphics.melodySVG({ notes: melodyNotes, highlightIndex, clef: inst.clef, accentColor: inst.accentColor, width: 320, timeSig: lesson.timeSig, keySig: lesson.keySig || 0, pickup: lesson.pickup, gaps: lesson.gaps || [] })
+    ? Graphics.melodySVG({ notes: melodyNotes, highlightIndex, clef: inst.clef, accentColor: inst.accentColor, width: 320, timeSig: lesson.timeSig, keySig: lesson.keySig || 0, bpm: lesson.bpm || 100, pickup: lesson.pickup, gaps: lesson.gaps || [] })
     : '';
 
   const playLabel = playback.finished ? '\u21BB ' + t('Replay') : '\u25B6 ' + t('Play whole melody');

@@ -211,7 +211,7 @@ const Graphics = (() => {
     return `<path class="rest rest-${kind}" d="${glyph.d}" fill="${color}" transform="translate(${tx.toFixed(2)} ${y(ref).toFixed(2)}) scale(${s.toFixed(5)} ${(-s).toFixed(5)})"/>`;
   }
 
-  function melodySVG({ notes = [], highlightIndex = -1, clef = 'treble', accentColor = 'var(--accent-warm)', width = 320, barsPerSystem = 4, beatsPerBar = 4, timeSig = null, keySig = 0, pickup = 0, gaps = [] }) {
+  function melodySVG({ notes = [], highlightIndex = -1, clef = 'treble', accentColor = 'var(--accent-warm)', width = 320, barsPerSystem = 4, beatsPerBar = 4, timeSig = null, keySig = 0, bpm = null, pickup = 0, gaps = [] }) {
     if (!notes.length) return '';
     const VB_W = 360;
     const SYSTEM_H = 100;
@@ -323,6 +323,11 @@ const Graphics = (() => {
         const sigX = KEY_X + keyCount * 8 + 12;
         svg += `<text x="${sigX}" y="${y(4) - 1}" font-size="24" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${sigNum}</text>`;
         svg += `<text x="${sigX}" y="${y(2) + 14}" font-size="24" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${sigDen}</text>`;
+      }
+      // Tempo marking — the song's own written tempo, placed above the staff
+      // on the first system.
+      if (s === 0 && bpm) {
+        svg += `<text x="${KEY_X}" y="${y(8) - 20}" font-size="13" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">\u2669=${bpm}</text>`;
       }
 
       for (let b = 1; b < bars; b++) svg += line(sysStartX + b * barW, y(8), sysStartX + b * barW, y(0), 1.3);
