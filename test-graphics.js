@@ -131,9 +131,6 @@ for (const id of INSTRUMENT_ORDER) {
   const half = [{ pos: 2, duration: 1 }, { pos: 2, duration: 1 }, { pos: 2, duration: 1 }, { pos: 2, duration: 2 }];
   check(barLines(Graphics.melodySVG({ notes: half, accentColor: '#e0a020', pickup: 1 })) === 2,
     'a half note is never split by a bar line');
-  // Measure numbers are drawn, one per bar, just after the barline.
-  check(Graphics.melodySVG({ notes: q(8), accentColor: '#e0a020' }).includes('>2</text>'), 'the second bar of a two-bar tune gets a measure number');
-  check(!Graphics.melodySVG({ notes: q(4), accentColor: '#e0a020' }).includes('>2</text>'), 'a one-bar tune draws only measure 1');
 }
 
 // ── Optional markings: repeats, articulations, dynamics, slurs ─────────────

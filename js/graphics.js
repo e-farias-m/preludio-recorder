@@ -330,10 +330,6 @@ const Graphics = (() => {
       if (s === 0 && bpm) {
         svg += `<text x="${KEY_X}" y="${y(8) - 20}" font-size="13" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">\u2669=${bpm}</text>`;
       }
-      // Measure numbers: one per bar in this system, placed just after the barline.
-      for (let i = 0; i < bars; i++) {
-        svg += `<text x="${sysStartX + (firstBar + i) * barW + barW}" y="${y(0) + 16}" font-size="12" font-weight="600" text-anchor="end" font-family="Georgia, serif" fill="${INK}">${firstBar + i + 1}</text>`;
-      }
 
       for (let b = 1; b < bars; b++) svg += line(sysStartX + b * barW, y(8), sysStartX + b * barW, y(0), 1.3);
       // Barline at end of this system/bar-group: thick for the tune's end,
