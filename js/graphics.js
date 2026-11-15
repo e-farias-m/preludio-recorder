@@ -211,7 +211,7 @@ const Graphics = (() => {
     return `<path class="rest rest-${kind}" d="${glyph.d}" fill="${color}" transform="translate(${tx.toFixed(2)} ${y(ref).toFixed(2)}) scale(${s.toFixed(5)} ${(-s).toFixed(5)})"/>`;
   }
 
-  function melodySVG({ notes = [], highlightIndex = -1, clef = 'treble', accentColor = 'var(--accent-warm)', width = 320, barsPerSystem = 4, beatsPerBar = 4, timeSig = null, keySig = 0, bpm = null, pickup = 0, gaps = [] }) {
+  function melodySVG({ notes = [], highlightIndex = -1, clef = 'treble', accentColor = 'var(--accent-warm)', width = 320, barsPerSystem = 4, beatsPerBar = 4, timeSig = null, keySig = 0, bpm = null, pickup = 0, gaps = [], repeatStart = false, repeatEnd = false, dynamics = [], articulations = [], slurs = [] }) {
     if (!notes.length) return '';
     const VB_W = 360;
     const SYSTEM_H = 100;
@@ -304,6 +304,7 @@ const Graphics = (() => {
     const cmet = CLEF_GLYPH[clefName];
     const keyPos = keySig > 0 ? KEY_SHARP_POS : KEY_FLAT_POS;
     const keyGlyph = keySig > 0 ? '\u266F' : '\u266D';
+    const noteInfo = {};
 
     for (let s = 0; s < systemCount; s++) {
       const topLineY = TOP_LINE_Y + s * SYSTEM_H;
@@ -335,9 +336,23 @@ const Graphics = (() => {
       }
 
       for (let b = 1; b < bars; b++) svg += line(sysStartX + b * barW, y(8), sysStartX + b * barW, y(0), 1.3);
-      // The closing bar line of the piece is thick; a line that only ends a
-      // system (but not the tune) stays thin, like real engraving.
-      svg += line(endX, y(8), endX, y(0), s === systemCount - 1 ? 3.5 : 1.3);
+      // Barline at end of this system/bar-group: thick for the tune's end,
+      // thin when it only ends a system. End-repeat adds dots + thin + thick.
+      const isLast = s === systemCount - 1;
+      if (isLast && repeatEnd) {
+        svg += `<circle cx="${endX - 8}" cy="${y(5)}" r="1.5" fill="${INK}"/><circle cx="${endX - 8}" cy="${y(3)}" r="1.5" fill="${INK}"/>`;
+        svg += line(endX - 4, y(8), endX - 4, y(0), 1.3);
+        svg += line(endX, y(8), endX, y(0), 3.5);
+      } else {
+        svg += line(endX, y(8), endX, y(0), isLast ? 3.5 : 1.3);
+      }
+      // Start-repeat at the very beginning of the tune.
+      if (s === 0 && repeatStart) {
+        const sx = sysStartX;
+        svg += line(sx, y(8), sx, y(0), 3.5);
+        svg += line(sx + 4, y(8), sx + 4, y(0), 1.3);
+        svg += `<circle cx="${sx + 8}" cy="${y(5)}" r="1.5" fill="${INK}"/><circle cx="${sx + 8}" cy="${y(3)}" r="1.5" fill="${INK}"/>`;
+      }
 
       for (let b = 0; b < bars; b++) {
         barEvents[firstBar + b].forEach(e => {
@@ -348,6 +363,7 @@ const Graphics = (() => {
           const noteY = y(note.pos);
           const up = stemUpOf(e);
           if (e.index === highlightIndex) svg += `<circle cx="${x}" cy="${noteY}" r="11" fill="${accentColor}" opacity="0.18"/>`;
+          noteInfo[e.index] = { x, noteY, y, up, pos: note.pos, system: s };
           svg += `<g data-note-index="${e.index}">`;
           ledgerPositions(note.pos).forEach(p => {
             svg += `<line x1="${x - 9}" y1="${y(p)}" x2="${x + 9}" y2="${y(p)}" stroke="${color}" stroke-width="1.3"/>`;
@@ -363,7 +379,23 @@ const Graphics = (() => {
             const stemEnd = up ? noteY - 32 : noteY + 32;
             svg += `<line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemEnd}" stroke="${color}" stroke-width="1.4"/>`;
           }
+          // Articulations: placed above or below the note depending on stem direction.
+          const artList = (articulations || []).filter(a => a && a.index === e.index);
+          artList.forEach(a => {
+            const placeAbove = !up;
+            const ay = placeAbove ? (up ? noteY - 38 : y(Math.max(note.pos, 8)) - 10) : (up ? y(Math.min(note.pos, 0)) + 12 : noteY + 38);
+            if (a.type === 'staccato') svg += `<circle cx="${x}" cy="${ay}" r="1.6" fill="${color}"/>`;
+            else if (a.type === 'tenuto') svg += `<line x1="${x - 5}" y1="${ay}" x2="${x + 5}" y2="${ay}" stroke="${color}" stroke-width="1.4"/>`;
+            else if (a.type === 'accent') svg += `<path d="M${x - 5} ${ay - 3} L${x + 5} ${ay} L${x - 5} ${ay + 3}" fill="none" stroke="${color}" stroke-width="1.3"/>`;
+            else if (a.type === 'marcato') svg += `<path d="M${x - 4} ${ay + 4} L${x} ${ay - 4} L${x + 4} ${ay + 4}" fill="none" stroke="${color}" stroke-width="1.3"/>`;
+            else if (a.type === 'fermata') svg += `<path d="M${x - 7} ${ay} Q${x} ${ay - 8} ${x + 7} ${ay}" fill="none" stroke="${color}" stroke-width="1.3"/><circle cx="${x}" cy="${ay - 1}" r="1.4" fill="${color}"/>`;
+          });
           svg += `</g>`;
+          // Dynamics: placed below the staff near the note.
+          const dynList = (dynamics || []).filter(d => d && d.index === e.index);
+          dynList.forEach((d, di) => {
+            svg += `<text x="${x}" y="${y(0) + 26 + di * 10}" font-size="13" font-style="italic" font-weight="700" text-anchor="middle" font-family="Georgia, serif" fill="${INK}">${String(d.text || '')}</text>`;
+          });
         });
       }
 
@@ -401,6 +433,19 @@ const Graphics = (() => {
         }
       });
     }
+
+    // Slurs: smooth arcs connecting two noteheads (same-system only).
+    (slurs || []).forEach(sl => {
+      if (!sl) return;
+      const a = noteInfo[sl.from];
+      const b = noteInfo[sl.to];
+      if (!a || !b || a.system !== b.system) return;
+      const placeAbove = !(a.up || b.up);
+      const y1 = placeAbove ? Math.min(a.noteY, b.noteY) - 10 : Math.max(a.noteY, b.noteY) + 10;
+      const midX = (a.x + b.x) / 2;
+      const bow = placeAbove ? -10 : 10;
+      svg += `<path d="M${a.x} ${y1} Q${midX} ${y1 + bow} ${b.x} ${y1}" fill="none" stroke="${INK}" stroke-width="1.2"/>`;
+    });
 
     svg += `</svg>`;
     return svg;
