@@ -216,8 +216,8 @@ const Graphics = (() => {
     const MH = 6.5;
     const MS = MH * 2;
     const VB_W = 360;
-    const SYSTEM_H = 82;
-    const TOP_LINE_Y = 28;
+    const SYSTEM_H = 90;
+    const TOP_LINE_Y = 31;
     const LEFT_X = 16;
     const RIGHT_X = VB_W - 12;
     const KEY_X = 54;
@@ -278,7 +278,7 @@ const Graphics = (() => {
     const sysStep = SYSTEM_H + Math.max(0, lowDepth - (8 * MH + HEAD_RY)) + Math.max(0, topReach - HEAD_RY);
     const topFirstY = Math.max(TOP_LINE_Y, topReach + 12);
     const VB_H = Math.ceil(topFirstY + (systemCount - 1) * sysStep
-      + Math.max(SYSTEM_H - TOP_LINE_Y + 24, lowDepth + 12));
+      + Math.max(SYSTEM_H - TOP_LINE_Y + 13, lowDepth + 12));
     const renderH = width * (VB_H / VB_W);
 
     const xOf = new Map();

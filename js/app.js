@@ -20,7 +20,7 @@ var CHORD_FREQS = {
 };
 
 const THEME_KEY = 'preludioRecorderTheme';
-function getTheme() { return LS.getItem(THEME_KEY) || 'dark'; }
+function getTheme() { return LS.getItem(THEME_KEY) || 'light'; }
 // The wordmark has navy lettering, so dark screens use a light-lettered variant.
 function logoSrc() { return getTheme() === 'light' ? 'logo.svg' : 'logo-dark.svg'; }
 function applyTheme(theme) {
