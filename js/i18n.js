@@ -285,6 +285,7 @@ TRANSLATIONS.pt = {
   "Review 2": "Revisão 2",
   "Review 3": "Revisão 3",
   "Kum Ba Yah": "Kum Ba Yah",
+  "Ode to Joy": "Ode to Joy",
   "Three Blind Mice": "Three Blind Mice",
   "Accompaniment unavailable offline.": "Acompanhamento indisponível offline.",
   "Hear it": "Ouvir",
@@ -1464,6 +1465,7 @@ Object.assign(TRANSLATIONS.fr, {
 // ── French coverage for data-driven badge/tooltip strings ──────────────────
 Object.assign(TRANSLATIONS.fr, {
   "Kum Ba Yah": "Kum Ba Yah",
+  "Ode to Joy": "Ode to Joy",
   "Three Blind Mice": "Three Blind Mice",
   "Badges ·": "Badges ·",
   "notes ·": "notes ·",
@@ -1483,4 +1485,42 @@ Object.assign(TRANSLATIONS.fr, {
   "Rising Star: Earn 500 XP": "Étoile montante : gagnez 500 XP",
   "Quick Fingers: Score 15 in a Finger gym sprint": "Doigts rapides : marquez 15 points dans un sprint de gymnastique des doigts",
   "Planner: Finish a full practice plan": "Planificateur : terminez un plan de pratique complet",
+});
+
+// ── Metronome panel upgrade (mirrors Band/Strings) ────────────────────────
+Object.assign(TRANSLATIONS.pt, {
+  "Tempo preset": "Andamento predefinido",
+  "Preset…": "Predefinições…",
+  "Time signature": "Fórmula de compasso",
+  "Subdivision": "Subdivisão",
+  "Click sound": "Som do clique",
+  "Metronome volume": "Volume do metrônomo",
+  "Tap": "Marcar",
+  "■ Stop": "■ Parar",
+  "▶ Start": "▶ Iniciar",
+  "Beats": "Tempos",
+  "8ths": "Colcheias",
+  "Triplets": "Tercinas",
+  "16ths": "Semicolcheias",
+  "Click": "Clique",
+  "Wood": "Madeira",
+  "Beep": "Bipe",
+});
+Object.assign(TRANSLATIONS.fr, {
+  "Tempo preset": "Préréglage de tempo",
+  "Preset…": "Préréglages…",
+  "Time signature": "Mesure",
+  "Subdivision": "Subdivision",
+  "Click sound": "Son du clic",
+  "Metronome volume": "Volume du métronome",
+  "Tap": "Tap",
+  "■ Stop": "■ Arrêter",
+  "▶ Start": "▶ Démarrer",
+  "Beats": "Temps",
+  "8ths": "Croches",
+  "Triplets": "Triolets",
+  "16ths": "Double-croches",
+  "Click": "Clic",
+  "Wood": "Bois",
+  "Beep": "Bip",
 });

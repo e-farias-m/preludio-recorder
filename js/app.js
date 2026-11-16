@@ -2340,14 +2340,54 @@ function renderCompletePhase(inst, lesson) {
 }
 
 // ── METRONOME ENGINE ────────────────────────────────────────────────────
+const MIN_BPM = 30;
+const MAX_BPM = 220;
+const TIME_SIGNATURES = [2, 3, 4, 6];
+const METRONOME_SUBDIVISIONS = [
+  { value: 1, label: 'Beats' },
+  { value: 2, label: '8ths' },
+  { value: 3, label: 'Triplets' },
+  { value: 4, label: '16ths' },
+];
+const TEMPO_PRESETS = [
+  { bpm: 60, label: 'Largo' },
+  { bpm: 80, label: 'Andante' },
+  { bpm: 100, label: 'Moderato' },
+  { bpm: 120, label: 'Allegro' },
+  { bpm: 160, label: 'Presto' },
+];
+const METRONOME_SOUNDS = [
+  { value: 'click', label: 'Click' },
+  { value: 'wood', label: 'Wood' },
+  { value: 'beep', label: 'Beep' },
+];
+const METRONOME_DEFAULT_VOLUME = 0.8;
+
+function clampBpm(bpm) {
+  return Math.max(MIN_BPM, Math.min(MAX_BPM, Math.round(bpm)));
+}
+
 function createMetronome(bpm = 80, beatsPerBar = 4) {
-  return { bpm: Math.max(40, Math.min(240, bpm || 80)), beatsPerBar: beatsPerBar || 4, beat: -1, subTick: 0, subdivision: 1, countIn: false, countInLeft: 0, running: false, timerId: null, taps: [] };
+  return {
+    bpm: clampBpm(bpm),
+    beatsPerBar: beatsPerBar || 4,
+    beat: -1,
+    subTick: 0,
+    subdivision: 1,
+    countIn: false,
+    countInLeft: 0,
+    volume: METRONOME_DEFAULT_VOLUME,
+    sound: 'click',
+    running: false,
+    timerId: null,
+    taps: [],
+  };
 }
 function bpmToTickMs(bpm, subdivision = 1) {
   const subs = Math.max(1, subdivision || 1);
-  return Math.round(60000 / (Math.max(40, Math.min(240, bpm || 80)) * subs));
+  return Math.round(60000 / (clampBpm(bpm) * subs));
 }
-function bpmToIntervalMs(bpm) { return Math.round(60000 / Math.max(40, Math.min(240, bpm || 80))); }
+function bpmToIntervalMs(bpm) { return Math.round(60000 / clampBpm(bpm)); }
 function advanceMetronome(metro) {
   const bpb = Math.max(1, metro.beatsPerBar || 4);
   metro.beat = (metro.beat + 1) % bpb;
@@ -2374,6 +2414,21 @@ function updateMetronomeDots() {
   wrap.innerHTML = dots.join('');
 }
 
+function metronomeClickOpts(metro, isSub = false) {
+  const base = metro && typeof metro.volume === 'number' ? metro.volume : METRONOME_DEFAULT_VOLUME;
+  return { volume: Math.max(0, Math.min(1, base * (isSub ? 0.7 : 1))), sound: (metro && metro.sound) || 'click' };
+}
+
+function tapTempo(taps) {
+  if (taps.length < 2) return null;
+  const recent = taps.slice(-6);
+  const spans = [];
+  for (let i = 1; i < recent.length; i++) spans.push(recent[i] - recent[i - 1]);
+  const avg = spans.reduce((a, b) => a + b, 0) / spans.length;
+  if (avg <= 0) return null;
+  return clampBpm(60000 / avg);
+}
+
 function startMetronomeTicker() {
   const m = APP.metronome;
   if (!m) return;
@@ -2384,14 +2439,14 @@ function startMetronomeTicker() {
     let delay;
     if (inCountIn) {
       const { accent } = advanceMetronome(m);
-      AudioEngine.playClick(accent);
+      AudioEngine.playClick(accent, 0, metronomeClickOpts(m));
       m.countInLeft -= 1;
       if (m.countInLeft <= 0) { inCountIn = false; m.beat = -1; m.subTick = 0; }
       updateMetronomeDots();
       delay = bpmToIntervalMs(m.bpm);
     } else {
       const tick = metronomeTick(m);
-      AudioEngine.playClick(tick.accent);
+      AudioEngine.playClick(tick.accent, 0, metronomeClickOpts(m, !tick.isBeat));
       updateMetronomeDots();
       delay = bpmToTickMs(m.bpm, m.subdivision);
     }
@@ -2545,25 +2600,48 @@ function renderToolWidget() {
 }
 
 function renderMetronomePanel() {
-  if (!APP.metronome) APP.metronome = createMetronome(80, 4);
+  if (!APP.metronome) APP.metronome = createMetronome();
   const m = APP.metronome;
   const dots = [];
-  for (let i = 0; i < (m.beatsPerBar || 4); i++) {
+  for (let i = 0; i < m.beatsPerBar; i++) {
     dots.push(`<div class="metro-dot ${i === m.beat ? 'metro-dot-active' : ''} ${i === 0 ? 'metro-dot-downbeat' : ''}"></div>`);
   }
+  const presetOpts = TEMPO_PRESETS.map(p =>
+    `<option value="${p.bpm}"${m.bpm === p.bpm ? ' selected' : ''}>${p.label} · ${p.bpm}</option>`
+  ).join('');
+  const timeOpts = TIME_SIGNATURES.map(t =>
+    `<option value="${t}"${m.beatsPerBar === t ? ' selected' : ''}>${t}/4</option>`
+  ).join('');
+  const subOpts = METRONOME_SUBDIVISIONS.map(s =>
+    `<option value="${s.value}"${(m.subdivision || 1) === s.value ? ' selected' : ''}>${t(s.label)}</option>`
+  ).join('');
+  const soundOpts = METRONOME_SOUNDS.map(s =>
+    `<option value="${s.value}"${(m.sound || 'click') === s.value ? ' selected' : ''}>${t(s.label)}</option>`
+  ).join('');
+  const vol = Math.round((typeof m.volume === 'number' ? m.volume : METRONOME_DEFAULT_VOLUME) * 100);
   return `
     <div class="tool-metro">
       <div class="metro-dots" id="metronome-dots">${dots.join('')}</div>
       <div class="tool-bpm">
-        <button class="tool-step" data-action="metronome-bpm" data-delta="-5" aria-label="${t('Slower')}">−</button>
+        <button class="tool-step" data-action="metronome-bpm" data-delta="-1" aria-label="${t('Slower')}">−</button>
         <div class="tool-bpm-value"><span id="metronome-bpm">${m.bpm}</span><small>BPM</small></div>
-        <button class="tool-step" data-action="metronome-bpm" data-delta="5" aria-label="${t('Faster')}">+</button>
+        <button class="tool-step" data-action="metronome-bpm" data-delta="1" aria-label="${t('Faster')}">+</button>
+      </div>
+      <div class="tool-row">
+        <select id="tool-preset" class="tool-select" aria-label="${t('Tempo preset')}"><option value="">${t('Preset…')}</option>${presetOpts}</select>
+        <select id="tool-timesig" class="tool-select" aria-label="${t('Time signature')}">${timeOpts}</select>
+      </div>
+      <div class="tool-row">
+        <select id="tool-subdivision" class="tool-select" aria-label="${t('Subdivision')}">${subOpts}</select>
+        <select id="tool-sound" class="tool-select" aria-label="${t('Click sound')}">${soundOpts}</select>
       </div>
       <div class="tool-row tool-row-between">
         <button class="tool-pill${m.countIn ? ' active' : ''}" data-action="metronome-countin" role="switch" aria-checked="${m.countIn ? 'true' : 'false'}">${t('Count-in')}</button>
+        <input type="range" id="metronome-volume" class="tool-volume" min="0" max="100" step="5" value="${vol}" aria-label="${t('Metronome volume')}" />
       </div>
       <div class="tool-actions">
-        <button class="btn btn-primary tool-play" data-action="metronome-toggle" id="metronome-toggle">${m.running ? '\u25A0 ' + t('Stop') : '\u25B6 ' + t('Start')}</button>
+        <button class="btn btn-secondary" data-action="metronome-tap">${t('Tap')}</button>
+        <button class="btn btn-primary tool-play" data-action="metronome-toggle" id="metronome-toggle">${m.running ? t('■ Stop') : t('▶ Start')}</button>
       </div>
     </div>`;
 }
@@ -3748,16 +3826,30 @@ function handleAction(action, el) {
       break;
     }
     case 'metronome-bpm': {
-      if (!APP.metronome) APP.metronome = createMetronome(80, 4);
-      const d = parseInt(el.dataset.delta, 10) || 0;
-      APP.metronome.bpm = Math.max(40, Math.min(240, (APP.metronome.bpm || 80) + d));
-      if (APP.metronome.running) { stopMetronome(); startMetronome(); }
+      if (!APP.metronome) APP.metronome = createMetronome();
+      const m = APP.metronome;
+      m.bpm = clampBpm(m.bpm + parseInt(el.dataset.delta, 10));
+      if (m.running) startMetronomeTicker();
       renderToolWidget();
       break;
     }
+    case 'metronome-tap': {
+      if (!APP.metronome) APP.metronome = createMetronome();
+      const m = APP.metronome;
+      m.taps.push(Date.now());
+      if (m.taps.length > 8) m.taps.shift();
+      const bpm = tapTempo(m.taps);
+      if (bpm) {
+        m.bpm = bpm;
+        if (m.running) startMetronomeTicker();
+        renderToolWidget();
+      }
+      break;
+    }
     case 'metronome-countin': {
-      if (!APP.metronome) APP.metronome = createMetronome(80, 4);
-      APP.metronome.countIn = !APP.metronome.countIn;
+      if (!APP.metronome) APP.metronome = createMetronome();
+      const m = APP.metronome;
+      m.countIn = !m.countIn;
       renderToolWidget();
       break;
     }
@@ -3825,6 +3917,40 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('change', (e) => {
   const input = e.target;
+  const m = APP.metronome;
+  if (m && input && input.id === 'metronome-volume') {
+    m.volume = Math.max(0, Math.min(1, Number(input.value) / 100));
+    return;
+  }
+  if (m && input && input.id === 'tool-preset') {
+    if (input.value) {
+      m.bpm = clampBpm(parseInt(input.value, 10));
+      if (m.running) startMetronomeTicker();
+    }
+    renderToolWidget();
+    return;
+  }
+  if (m && input && input.id === 'tool-timesig') {
+    m.beatsPerBar = parseInt(input.value, 10) || 4;
+    m.beat = -1;
+    m.subTick = 0;
+    if (m.running) startMetronomeTicker();
+    renderToolWidget();
+    return;
+  }
+  if (m && input && input.id === 'tool-subdivision') {
+    m.subdivision = parseInt(input.value, 10) || 1;
+    m.subTick = 0;
+    if (m.running) startMetronomeTicker();
+    renderToolWidget();
+    return;
+  }
+  if (m && input && input.id === 'tool-sound') {
+    m.sound = input.value || 'click';
+    if (m.running) AudioEngine.playClick(false, 0, metronomeClickOpts(m));
+    renderToolWidget();
+    return;
+  }
   if (input && input.id === 'import-file-input') {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];

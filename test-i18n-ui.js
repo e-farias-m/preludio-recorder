@@ -172,7 +172,7 @@ const keyRe = /(?:\b|\W)(?:t|tFill)\(\s*('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")/g;
 const usedKeys = new Set();
 let km;
 while ((km = keyRe.exec(appSrc))) usedKeys.add(new Function(`return ${km[1]}`)());
-const SAME_IN_BOTH = new Set(['XP', 'note', 'notes', 'Note', 'Badges', 'Minutes', 'Instruments', 'sprint', '{n} min', 'Au Clair de la Lune', 'Hot Cross Buns', 'Merrily We Roll Along']);
+const SAME_IN_BOTH = new Set(['XP', 'note', 'notes', 'Note', 'Badges', 'Minutes', 'Instruments', 'sprint', '{n} min', 'Au Clair de la Lune', 'Hot Cross Buns', 'Merrily We Roll Along', 'Subdivision', 'Tap']);
 for (const lang of ['pt', 'fr']) {
   const dict = api.TRANSLATIONS[lang] || {};
   const missing = [...usedKeys].filter(k => !Object.prototype.hasOwnProperty.call(dict, k));
