@@ -54,7 +54,7 @@ for (const id of INSTRUMENT_ORDER) {
     if (l.type === 'song' || l.type === 'review') continue;
     if (!l.fingeringState) continue;
     try {
-      const svg = Graphics.fingeringSVG(l.fingeringState, inst.fingeringType, inst.accentColor || '#C4832A', 84);
+      const svg = Graphics.fingeringSVG(inst.fingeringType, l.fingeringState, inst.accentColor || '#C4832A', 84);
       check(isSvg(svg), `${id}/${l.id} fingeringSVG not svg`);
     } catch (e) { fail++; failures.push(`${id}/${l.id} fingeringSVG threw: ${e.message}`); }
   }
