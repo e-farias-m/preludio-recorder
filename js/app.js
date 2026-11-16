@@ -275,6 +275,216 @@ function getCurrentStreak(now = new Date()) {
   return streak;
 }
 
+// ── WEEKLY DIGEST ──────────────────────────────────────────────────────────
+const DAY_ABBR = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DEFAULT_WEEKLY_GOAL = 60;
+const WEEKLY_GOAL_OPTIONS = [30, 60, 120, 180];
+
+function getWeeklyGoalMinutes() {
+  const g = Number(getMotivation().weeklyGoalMinutes);
+  return Number.isFinite(g) && g > 0 ? g : DEFAULT_WEEKLY_GOAL;
+}
+
+function setWeeklyGoalMinutes(minutes) {
+  const g = Math.max(10, Math.min(600, Math.round(Number(minutes) || 0)));
+  const m = getMotivation();
+  m.weeklyGoalMinutes = g;
+  saveMotivation();
+  return g;
+}
+
+function getWeekStart(now = new Date()) {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dow = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - dow);
+  return d;
+}
+
+function getWeekKey(now = new Date()) {
+  return todayKey(getWeekStart(now));
+}
+
+function getWeekDays(now = new Date()) {
+  const m = getMotivation();
+  const start = getWeekStart(now);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const key = todayKey(d);
+    days.push({ key, label: DAY_ABBR[i], seconds: m.days[key] || 0 });
+  }
+  return days;
+}
+
+function digestHeadline(activeDays, totalMinutes) {
+  if (activeDays === 0) return t('No practice logged this week — pick a lesson to start.');
+  if (activeDays <= 2) return tFill('Nice start — {minutes} minute{plural} this week.', { minutes: totalMinutes, plural: totalMinutes === 1 ? '' : 's' });
+  if (activeDays <= 4) return tFill('Solid week — you practiced {days} days!', { days: activeDays });
+  return tFill('Amazing week — you showed up {days} days!', { days: activeDays });
+}
+
+function buildWeeklyDigest(name, now = new Date()) {
+  const days = getWeekDays(now);
+  const m = getMotivation();
+  const weekSeconds = days.reduce((a, d) => a + d.seconds, 0);
+  const activeDays = days.filter(d => d.seconds > 0).length;
+  const best = days.reduce((b, d) => (d.seconds > b.seconds ? d : b), days[0]);
+  const startMs = getWeekStart(now).getTime();
+  const endMs = startMs + 7 * 86400000;
+  const badges = BADGES.filter(b => {
+    const iso = m.badges[b.id];
+    if (!iso) return false;
+    const tt = Date.parse(iso);
+    return tt >= startMs && tt < endMs;
+  });
+  const weekKey = getWeekKey(now);
+  const totalMinutes = Math.round(weekSeconds / 60);
+  const goalMinutes = getWeeklyGoalMinutes();
+  return {
+    student: name || 'Student',
+    weekKey,
+    seen: m.digestSeen === weekKey,
+    weekStart: days[0].key,
+    weekEnd: days[6].key,
+    days: days.map(d => ({ label: d.label, key: d.key, minutes: Math.round(d.seconds / 60) })),
+    totalMinutes,
+    activeDays,
+    bestDayLabel: best.seconds > 0 ? best.label : null,
+    bestDayMinutes: Math.round(best.seconds / 60),
+    headline: digestHeadline(activeDays, Math.round(weekSeconds / 60)),
+    streak: getCurrentStreak(now),
+    level: getLevel(),
+    badges,
+    badgeTotal: BADGES.length,
+    goalMinutes,
+    goalMet: totalMinutes >= goalMinutes,
+    goalRemaining: Math.max(goalMinutes - totalMinutes, 0),
+    goalPct: goalMinutes ? Math.min(100, Math.round((totalMinutes / goalMinutes) * 100)) : 0,
+  };
+}
+
+function shouldRemindDigest(now = new Date()) {
+  const m = getMotivation();
+  const weekKey = getWeekKey(now);
+  if (m.digestSeen === weekKey || m.digestReminded === weekKey) return false;
+  return getWeekDays(now).some(d => d.seconds > 0);
+}
+
+function formatDigestText(d) {
+  const lines = [];
+  lines.push(t('Practice report — {student}').replace('{student}', d.student));
+  lines.push(d.weekStart + ' → ' + d.weekEnd);
+  lines.push('');
+  lines.push(d.headline);
+  lines.push(tFill('Level {level} · {streak}-day streak · {minutes} min across {days} day{plural}', { level: d.level, streak: d.streak, minutes: d.totalMinutes, days: d.activeDays, plural: d.activeDays === 1 ? '' : 's' }));
+  lines.push('');
+  lines.push(t('Daily practice (minutes)'));
+  d.days.forEach(x => lines.push('  ' + x.label + ' ' + x.minutes));
+  if (d.bestDayLabel) lines.push(tFill('Best day: {label} · {minutes} min', { label: t(d.bestDayLabel), minutes: d.bestDayMinutes }));
+  lines.push('');
+  lines.push(t('Weekly goal') + ': ' + (d.goalMet ? tFill('\u2713 Goal met — {total} of {goal} min!', { total: d.totalMinutes, goal: d.goalMinutes }) : tFill('{remaining} min to reach your {goal}-minute goal', { remaining: d.goalRemaining, goal: d.goalMinutes })));
+  if (d.badges.length) {
+    lines.push('');
+    lines.push(t('New badges this week'));
+    d.badges.forEach(b => lines.push('  ' + b.icon + ' ' + t(b.name)));
+  }
+  return lines.join('\n');
+}
+
+function renderDigestCard(name, now = new Date()) {
+  if (APP.digestDismissed) return '';
+  const d = buildWeeklyDigest(name, now);
+  if (d.activeDays === 0) return '';
+  const max = Math.max.apply(null, d.days.map(x => x.minutes).concat(1));
+  const today = todayKey(now);
+  const bars = d.days.map(x => {
+    const h = x.minutes > 0 ? Math.max(Math.round((x.minutes / max) * 100), 10) : 4;
+    const isToday = x.key === today;
+    return `<div class="digest-col">
+      <div class="digest-bar${isToday ? ' digest-bar-today' : ''}" style="height:${h}%"></div>
+      <span class="digest-col-label${isToday ? ' digest-col-today' : ''}">${x.label[0]}</span>
+    </div>`;
+  }).join('');
+  const pill = d.seen ? '' : `<span class="digest-new">${t('New')}</span>`;
+  return `
+    <div class="digest-card" data-action="open-digest">
+      <div class="digest-card-head">
+        <div class="digest-card-title">${t('This week in music')} ${pill}</div>
+        <div class="digest-card-head-right">
+          <div class="digest-card-min">${d.totalMinutes} min</div>
+          <button class="digest-dismiss" data-action="dismiss-digest" title="Hide for now" aria-label="Hide weekly progress">\u2715</button>
+        </div>
+      </div>
+      <div class="digest-card-headline">${escapeHtml(d.headline)}</div>
+      <div class="digest-bars">${bars}</div>
+      <div class="digest-goal">
+        <div class="digest-goal-track"><div class="digest-goal-fill${d.goalMet ? ' digest-goal-met' : ''}" style="width:${d.goalPct}%"></div></div>
+        <span class="digest-goal-text">${d.goalMet ? '\u2713 ' : ''}${d.totalMinutes}/${d.goalMinutes} min goal</span>
+      </div>
+    </div>`;
+}
+
+function renderDigestScreen(now = new Date()) {
+  const d = buildWeeklyDigest(getStudentName(), now);
+  const max = Math.max.apply(null, d.days.map(x => x.minutes).concat(1));
+  const today = todayKey(now);
+  const bars = d.days.map(x => {
+    const h = x.minutes > 0 ? Math.max(Math.round((x.minutes / max) * 100), 10) : 4;
+    const isToday = x.key === today;
+    return `<div class="digest-col">
+      <div class="digest-bar${isToday ? ' digest-bar-today' : ''}" style="height:${h}%"></div>
+      <span class="digest-col-label${isToday ? ' digest-col-today' : ''}">${t(x.label)}</span>
+      <span class="digest-col-min">${x.minutes}</span>
+    </div>`;
+  }).join('');
+  const badges = d.badges.length
+    ? d.badges.map(b => `<span class="report-badge">${b.icon} ${escapeHtml(t(b.name))}</span>`).join('')
+    : `<span class="report-badge-empty">${t('No new badges this week')}</span>`;
+  const goalChips = WEEKLY_GOAL_OPTIONS.map(g =>
+    `<button class="digest-goal-chip${g === d.goalMinutes ? ' active' : ''}" data-action="set-weekly-goal" data-goal="${g}">${tFill('{n} min', { n: g })}</button>`
+  ).join('');
+  const goalStatus = d.goalMet
+    ? tFill('\u2713 Goal met — {total} of {goal} min!', { total: d.totalMinutes, goal: d.goalMinutes })
+    : tFill('{remaining} min to reach your {goal}-minute goal', { remaining: d.goalRemaining, goal: d.goalMinutes });
+  return `
+    <div class="screen active digest-screen">
+      <div class="app-header">
+        <button class="header-back" data-action="close-digest">\u2190</button>
+        <div class="header-title">${t('Weekly digest')}</div>
+      </div>
+      <div class="lesson-body">
+        <div class="report-hero">
+          <div class="report-avatar">${getAvatar()}</div>
+          <div>
+            <div class="report-name">${escapeHtml(d.student)}</div>
+            <div class="report-date">${d.weekStart} \u2192 ${d.weekEnd}</div>
+          </div>
+        </div>
+        <div class="digest-headline">${escapeHtml(d.headline)}</div>
+        <div class="report-stats">
+          <div class="report-stat"><b>${d.totalMinutes}</b><span>${t('Minutes')}</span></div>
+          <div class="report-stat"><b>${d.activeDays}</b><span>${t('Active days')}</span></div>
+          <div class="report-stat"><b>${d.streak}</b><span>${t('Day streak')}</span></div>
+          <div class="report-stat"><b>${d.level}</b><span>${t('Level')}</span></div>
+        </div>
+        <div class="report-section-label">${t('Daily practice (minutes)')}</div>
+        <div class="digest-bars digest-bars-tall">${bars}</div>
+        ${d.bestDayLabel ? `<div class="digest-best">${tFill('Best day: {label} \u00b7 {minutes} min', { label: t(d.bestDayLabel), minutes: d.bestDayMinutes })}</div>` : ''}
+        <div class="report-section-label">${t('Weekly goal')}</div>
+        <div class="digest-goal-track digest-goal-track-lg"><div class="digest-goal-fill${d.goalMet ? ' digest-goal-met' : ''}" style="width:${d.goalPct}%"></div></div>
+        <div class="digest-goal-status">${goalStatus}</div>
+        <div class="digest-goal-options">${goalChips}</div>
+        <div class="report-section-label">${t('New badges this week')}</div>
+        <div class="report-badges">${badges}</div>
+        <div class="report-actions">
+          <button class="btn btn-primary" data-action="copy-digest">${t('Copy recap')}</button>
+          <button class="btn btn-secondary" data-action="print-digest">${t('Print')}</button>
+        </div>
+      </div>
+    </div>`;
+}
+
 function getTotalXp() {
   return Object.values(APP.progress).reduce((sum, p) => sum + (p.xp || 0), 0);
 }
@@ -1860,6 +2070,7 @@ function renderMapScreen() {
           </div>
           <button class="btn btn-primary" data-action="open-practice" ${practiceReady ? '' : 'disabled'}>${t('Practice')}</button>
         </div>
+        ${getStudentName() ? renderDigestCard(getStudentName()) : ''}
         <div class="map-unit-label">${t('Unit 1 · First Notes')}</div>
         <div class="map-path">${nodes}</div>
         ${instImported.length ? `
@@ -2654,6 +2865,7 @@ function render() {
   else if (APP.screen === 'lookup') app.innerHTML = renderLookupScreen();
   else if (APP.screen === 'tutorial') app.innerHTML = renderTutorialScreen();
   else if (APP.screen === 'report') app.innerHTML = renderReportScreen();
+  else if (APP.screen === 'digest') app.innerHTML = renderDigestScreen();
   else if (APP.screen === 'song-library') app.innerHTML = renderSongLibraryScreen(getInstrument(APP.instrumentId));
   else if (APP.screen === 'practice') app.innerHTML = renderPracticeScreen();
   else if (APP.screen === 'lesson') app.innerHTML = renderLessonScreen();
@@ -3340,6 +3552,41 @@ function handleAction(action, el) {
     }
 
     case 'print-report':
+      window.print();
+      break;
+
+    case 'open-digest':
+      APP.screen = 'digest';
+      APP.digestDismissed = false;
+      if (APP.motivation) { APP.motivation.digestSeen = getWeekKey(); saveMotivation(); }
+      render();
+      break;
+
+    case 'close-digest':
+      APP.screen = 'select';
+      if (APP.motivation) { APP.motivation.digestSeen = getWeekKey(); saveMotivation(); }
+      render();
+      break;
+
+    case 'dismiss-digest':
+      APP.digestDismissed = true;
+      render();
+      break;
+
+    case 'set-weekly-goal': {
+      const g = parseInt(el.dataset.goal, 10);
+      if (g) setWeeklyGoalMinutes(g);
+      render();
+      break;
+    }
+
+    case 'copy-digest': {
+      const text = formatDigestText(buildWeeklyDigest(getStudentName()));
+      copyText(text).then(ok => showToast(ok ? t('Weekly recap copied.') : t('Copy failed \u2014 try Print instead.')));
+      break;
+    }
+
+    case 'print-digest':
       window.print();
       break;
 

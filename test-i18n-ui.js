@@ -60,7 +60,7 @@ return {
   renderReportScreen, renderPlanCard, renderWeakSpots, renderStudentCard,
   renderBadgeShelf, renderInstrumentGrid, renderFocusCard, renderPresentPhase,
   renderQuizPhase, renderPlayPhase, renderCompletePhase, renderSongPresentPhase,
-  getNoteLessons,
+  renderDigestScreen, getNoteLessons,
 };
 `);
 const api = sandbox(document, localStorage, {}, navigator, FakeMediaRecorder, URL, Blob, Audio);
@@ -94,6 +94,7 @@ function collectScreens() {
   add('practice', api.renderPracticeScreen());
   add('practice-tools', api.renderPracticeTools());
   add('report', api.renderReportScreen());
+  add('digest', api.renderDigestScreen());
   add('plan-card', api.renderPlanCard(inst.id));
   add('weak-spots', api.renderWeakSpots(inst.id));
   add('student-card', api.renderStudentCard('Ana'));
