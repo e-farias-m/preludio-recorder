@@ -802,6 +802,13 @@ TRANSLATIONS.pt = {
   "Soon": "Em breve",
   "Stop recording": "Parar gravação",
   "Sounds as concert {note} ({key} instrument).": "Soa como concerto {note} (instrumento em {key}).",
+  "Continue to quiz": "Continuar para o quiz",
+  "Hot Cross Buns": "Hot Cross Buns",
+  "Merrily We Roll Along": "Merrily We Roll Along",
+  "Row, Row, Row Your Boat": "Remo, Remo, Remo o Barco",
+  "Au Clair de la Lune": "Au Clair de la Lune",
+  "C Major Scale Waltz": "Valsa da escala de Dó maior",
+  "Chord Practice": "Prática de acordes",
 };
 
 // French (Canadian French) translations - starter set
@@ -1441,4 +1448,14 @@ Object.assign(TRANSLATIONS.pt, {
   "{name} is coming soon!": "{name} chega em breve!",
   "{n} notes in this song could not be matched to your instrument and will be skipped. Import anyway?": "{n} notas desta música não correspondem ao seu instrumento e serão ignoradas. Importar mesmo assim?",
   "Imported \"{name}\"": "\"{name}\" importada",
+});
+
+// Song titles: folk names stay in the original language; teaching pieces translate.
+Object.assign(TRANSLATIONS.fr, {
+  "Hot Cross Buns": "Hot Cross Buns",
+  "Merrily We Roll Along": "Merrily We Roll Along",
+  "Row, Row, Row Your Boat": "Rame, rame, rame ton bateau",
+  "Au Clair de la Lune": "Au Clair de la Lune",
+  "C Major Scale Waltz": "Valse de la gamme de Do majeur",
+  "Chord Practice": "Exercice d'accords",
 });

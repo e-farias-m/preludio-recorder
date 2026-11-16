@@ -1290,7 +1290,7 @@ function renderReportScreen() {
         <div class="report-section-label">${t('Badges')} \u00b7 ${report.badges.length}/${report.badgeTotal}</div>
         <div class="report-badges">${badges}</div>
         <div class="report-actions">
-          <button class="btn btn-primary" data-action="copy-report">Copy summary</button>
+          <button class="btn btn-primary" data-action="copy-report">${t('Copy summary')}</button>
           <button class="btn btn-secondary" data-action="print-report">Print</button>
         </div>
       </div>
@@ -1653,7 +1653,7 @@ function renderLookupScreen() {
         <div class="lookup-detail">
           <div class="lookup-diagrams">
             <div class="lookup-diagram">
-              <div class="lookup-diagram-label">Fingering</div>
+              <div class="lookup-diagram-label">${t('Fingering')}</div>
               ${bigFingering}
             </div>
             <div class="lookup-diagram">
@@ -2049,7 +2049,7 @@ function renderSongPresentPhase(inst, lesson) {
       </div>
     </div>
     <div class="action-bar">
-      <button class="btn btn-primary btn-wide" data-action="goto-quiz">Continue to quiz</button>
+      <button class="btn btn-primary btn-wide" data-action="goto-quiz">${t('Continue to quiz')}</button>
     </div>`;
 }
 
@@ -2253,11 +2253,11 @@ function renderPlayPhase(inst, lesson) {
         </div>
         <div class="beat-grid">${cells}${playCell}</div>
         <div class="play-status" id="play-status">${t('Tap Start, then play along on the count.')}</div>
-        <button class="btn btn-secondary" data-action="play-start" id="play-start-btn">▶ Start count-in</button>
+        <button class="btn btn-secondary" data-action="play-start" id="play-start-btn">${t('▶ Start count-in')}</button>
         ${renderRecordPanel(lesson)}
       </div>
       <div class="metronome-controls">
-        <button class="${metCls}" data-action="toggle-metronome">${metActive ? '⏹' : '🎵'} Metronome</button>
+        <button class="${metCls}" data-action="toggle-metronome">${metActive ? '⏹' : '🎵'} ${t('Metronome')}</button>
         <div class="bpm-control">
           <label class="bpm-label">${metBpm} BPM</label>
           <input type="range" class="bpm-slider" data-action="set-bpm" min="40" max="200" value="${metBpm}" step="1" />
