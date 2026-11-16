@@ -168,6 +168,20 @@ for (const id of INSTRUMENT_ORDER) {
   const half = [{ pos: 2, duration: 1 }, { pos: 2, duration: 1 }, { pos: 2, duration: 1 }, { pos: 2, duration: 2 }];
   check(barLines(Graphics.melodySVG({ notes: half, accentColor: '#e0a020', pickup: 1 })) === 2,
     'a half note is never split by a bar line');
+  // A short last system stops after its last bar instead of stretching an
+  // empty staff across the full width.
+  const staffEnds = svg => [...new Set(
+    [...svg.matchAll(/<line x1="16" y1="([\d.]+)" x2="([\d.]+)" y2="\1"/g)].map(m => +m[2])
+  )];
+  const fiveBars = Graphics.melodySVG({ notes: q(20), accentColor: '#e0a020' });
+  const ends = staffEnds(fiveBars);
+  check(ends.length === 2 && ends[1] < ends[0],
+    `the last system ends after its last bar (got ${JSON.stringify(ends)})`);
+  const closing = [...fiveBars.matchAll(/<line x1="([\d.]+)"[^>]*stroke-width="3(?:\.0)?"/g)].map(m => +m[1]);
+  check(closing.length === 1 && closing[0] === ends[1],
+    `the closing bar line sits at the end of the short last system (got ${JSON.stringify(closing)})`);
+  check(staffEnds(Graphics.melodySVG({ notes: q(16), accentColor: '#e0a020' }))[0] === 348,
+    'a full last system still spans the whole staff width');
 }
 
 // ── Optional markings: repeats, articulations, dynamics, slurs ─────────────
