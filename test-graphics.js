@@ -119,6 +119,31 @@ for (const id of INSTRUMENT_ORDER) {
     `a high ledger note fits inside the viewBox (y ${Math.min(...highYs)}..${Math.max(...highYs)} of ${highH})`);
 }
 
+// ── Ledger lines stop at the notehead ──────────────────────────────────────
+// A note in a space hangs off the last line above it; nothing is drawn past
+// the head. Low B (B3) is the space under the C4 ledger line, so it gets C4
+// only — not an extra line at A3 underneath.
+{
+  const cases = [
+    [-2, [-2]], [-3, [-2]], [-4, [-2, -4]], [-5, [-2, -4]], [-6, [-2, -4, -6]],
+    [-1, []], [0, []], [8, []], [9, []], [10, [10]], [11, [10]], [12, [10, 12]],
+  ];
+  for (const [pos, want] of cases) {
+    const got = Graphics.ledgerPositions(pos);
+    check(JSON.stringify(got) === JSON.stringify(want),
+      `pos ${pos} should have ledger lines ${JSON.stringify(want)}, got ${JSON.stringify(got)}`);
+  }
+
+  const b3 = Graphics.staffSVG({ pos: -3, clef: 'treble', accentColor: '#F2C24E', width: 130 });
+  const ledgerYs = [...b3.matchAll(/<line x1="[\d.]+" y1="([\d.]+)" x2="[\d.]+" y2="[\d.]+" stroke="#524F70" stroke-width="1.5"\/>/g)]
+    .map(m => Number(m[1]));
+  const below = ledgerYs.filter(y => y > 140).sort((a, b) => a - b);
+  check(JSON.stringify(below) === JSON.stringify([156]),
+    `B3 should get exactly the C4 ledger line (got y=${JSON.stringify(below)})`);
+  const noteY = 140 - (-3) * 8;
+  check(!below.some(y => y > noteY), 'B3 should not have a ledger line under the notehead');
+}
+
 // ── Melody staff shows 4/4 and places bar lines on the beats ───────────────
 {
   const barLines = svg => {
