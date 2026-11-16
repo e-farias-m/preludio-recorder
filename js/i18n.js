@@ -285,6 +285,7 @@ TRANSLATIONS.pt = {
   "Review 2": "Revisão 2",
   "Review 3": "Revisão 3",
   "Kum Ba Yah": "Kum Ba Yah",
+  "Three Blind Mice": "Three Blind Mice",
   "Accompaniment unavailable offline.": "Acompanhamento indisponível offline.",
   "Hear it": "Ouvir",
   "Play note": "Tocar nota",
@@ -1458,4 +1459,28 @@ Object.assign(TRANSLATIONS.fr, {
   "Au Clair de la Lune": "Au Clair de la Lune",
   "C Major Scale Waltz": "Valse de la gamme de Do majeur",
   "Chord Practice": "Exercice d'accords",
+});
+
+// ── French coverage for data-driven badge/tooltip strings ──────────────────
+Object.assign(TRANSLATIONS.fr, {
+  "Kum Ba Yah": "Kum Ba Yah",
+  "Three Blind Mice": "Three Blind Mice",
+  "Badges ·": "Badges ·",
+  "notes ·": "notes ·",
+  "songs ·": "chansons ·",
+  "-day streak": "jours de suite",
+  "min": "min",
+  "Mastery:": "Maîtrise :",
+  "mastered,": "maîtrisées,",
+  "practiced,": "pratiquées,",
+  "learning": "en apprentissage",
+  "First Steps: Complete your first lesson": "Premiers pas : terminez votre première leçon",
+  "First Song: Complete a song": "Première chanson : terminez une chanson",
+  "Full Scale: Learn every note on an instrument": "Gamme complète : apprenez toutes les notes d'un instrument",
+  "On a Roll: Practice 3 days in a row": "Sur une lancée : pratiquez 3 jours de suite",
+  "Week Strong: Practice 7 days in a row": "Semaine solide : pratiquez 7 jours de suite",
+  "Marathon: Practice for 30 minutes in total": "Marathon : pratiquez 30 minutes au total",
+  "Rising Star: Earn 500 XP": "Étoile montante : gagnez 500 XP",
+  "Quick Fingers: Score 15 in a Finger gym sprint": "Doigts rapides : marquez 15 points dans un sprint de gymnastique des doigts",
+  "Planner: Finish a full practice plan": "Planificateur : terminez un plan de pratique complet",
 });
