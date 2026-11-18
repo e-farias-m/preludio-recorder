@@ -1572,3 +1572,14 @@ Object.assign(TRANSLATIONS.fr, {
   "Mon": "lun", "Tue": "mar", "Wed": "mer", "Thu": "jeu", "Fri": "ven", "Sat": "sam", "Sun": "dim",
   "Level {level} · {streak}-day streak · {minutes} min across {days} day{plural}": "Niveau {level} · {streak} jours consécutifs · {minutes} min sur {days} jour{plural}",
 });
+
+// The tour's map sentence is one template so the instrument name sits where each language needs it.
+Object.assign(TRANSLATIONS.pt, {
+  "Every note and song is a stop on your {name} map. Finish one step to unlock the next — a 🔒 just means the step before it is still waiting.": "Cada nota e cada música é uma parada no seu mapa de {name}. Conclua um passo para desbloquear o próximo — um 🔒 significa apenas que o passo anterior ainda está esperando.",
+});
+Object.assign(TRANSLATIONS.fr, {
+  "Every note and song is a stop on your {name} map. Finish one step to unlock the next — a 🔒 just means the step before it is still waiting.": "Chaque note et chaque chanson est une étape de votre carte {name}. Terminez une étape pour débloquer la suivante — un 🔒 signifie juste que l’étape précédente attend encore.",
+});
+Object.assign(TRANSLATIONS.pt, {
+  "Watch yourself grow": "Acompanhe seu progresso",
+});

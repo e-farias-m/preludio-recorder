@@ -1756,7 +1756,7 @@ function buildTutorialSlides(inst) {
     {
       icon: '\u{1F5FA}\uFE0F',
       title: t('Follow your lesson path'),
-      body: `${t('Every note and song is a stop on your')} ${t(inst.shortName)} ${t('map. Finish one step to unlock the next — a 🔒 just means the step before it is still waiting.')}`
+      body: tFill('Every note and song is a stop on your {name} map. Finish one step to unlock the next — a 🔒 just means the step before it is still waiting.', { name: t(inst.shortName) })
     },
     {
       icon: '\u{1F440}',
