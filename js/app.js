@@ -1035,6 +1035,12 @@ function escapeHtml(str) {
   return d.innerHTML;
 }
 
+function centsLabel(cents) {
+  const r = Math.round(cents);
+  if (Math.abs(r) <= 3) return 'in tune';
+  return (r > 0 ? '+' : '') + r + ' cents ' + (r > 0 ? 'sharp' : 'flat');
+}
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -1046,17 +1052,28 @@ function shuffle(arr) {
 
 // ── RENDER: SELECT SCREEN ──────────────────────────────────────────────────
 function renderTunerPanel() {
+  const noteLessons = APP.instrumentId ? getNoteLessons(APP.instrumentId) : [];
   const tuner = APP.tuner;
-  const running = !!(tuner && tuner.running);
-  const freq = tuner && tuner.freq > 0 ? tuner.freq : 0;
-  const detected = freq > 0 ? freqToNoteInfo(freq, getTunerNoteLessons()) : null;
-  const noteName = detected ? t_noteName(detected.note) : '—';
-  const cents = detected ? (detected.cents > 0 ? '+' + Math.round(detected.cents) : Math.round(detected.cents)) + ' cents' : (running ? t('Listening…') : t('Press Tune'));
-  return `<div class="tuner-panel" style="margin:12px auto;max-width:320px;padding:12px;border:1px solid var(--border);border-radius:12px;text-align:center;">
-    <div style="font-size:28px;font-weight:700" id="tuner-note">${noteName}</div>
-    <div style="font-size:13px;color:var(--text-muted)" id="tuner-cents">${cents}</div>
-    <button class="btn btn-secondary" data-action="toggle-tuner" style="margin-top:8px">${running ? '⏹ ' + t('Stop') : '🎵 ' + t('Tune')}</button>
-  </div>`;
+  const listening = !!(tuner && tuner.running);
+  const detected = tuner && tuner.freq > 0 ? freqToNoteInfo(tuner.freq, noteLessons) : null;
+  let noteName = '—';
+  let cents = listening ? t('Listening…') : t('Press Tune');
+  let offset = 50;
+  if (detected) {
+    noteName = detected.note.noteName;
+    cents = centsLabel(detected.cents);
+    offset = Math.max(0, Math.min(100, 50 + (detected.cents / 50) * 50));
+  }
+  return `
+    <div class="tool-tuner">
+      <div class="tuner-note" id="tuner-note">${escapeHtml(noteName)}</div>
+      <div class="tuner-cents" id="tuner-cents">${escapeHtml(cents)}</div>
+      <div class="tuner-meter">
+        <div class="tuner-needle" id="tuner-needle" style="left:${offset}%"></div>
+        <div class="tuner-center"></div>
+      </div>
+      <button class="btn btn-primary btn-wide" data-action="tuner-toggle" style="margin-top:12px">${listening ? t('■ Stop') : t('▶ Tune')}</button>
+    </div>`;
 }
 
 function getNoteLessons(instrumentId) {
@@ -3969,7 +3986,7 @@ function handleAction(action, el) {
       toggleTheme();
       render();
       break;
-    case 'toggle-tuner':
+    case 'tuner-toggle':
       if (APP.tuner && APP.tuner.running) stopTuner(); else startTuner();
       render();
       break;
