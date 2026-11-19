@@ -20,7 +20,7 @@ const Graphics = (() => {
     if (pos > 8) {
       const maxL = (pos % 2 === 0) ? pos : pos - 1;
       for (let p = 10; p <= maxL; p += 2) out.push(p);
-    } else if (pos < 0) {
+    } else if (pos < -1) {
       const minL = (pos % 2 === 0) ? pos : pos + 1;
       for (let p = -2; p >= minL; p -= 2) out.push(p);
     }
